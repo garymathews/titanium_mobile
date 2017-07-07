@@ -467,7 +467,7 @@ public class TiTableView extends FrameLayout
 
 	public Item getItemAtPosition(int position)
 	{
-		if (proxy.hasProperty(TiC.PROPERTY_HEADER_VIEW)) {
+		if (proxy.hasPropertyAndNotNull(TiC.PROPERTY_HEADER_VIEW)) {
 			position -= 1;
 		}
 		if (position == -1 || position == adapter.getCount()) {
