@@ -957,7 +957,6 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 		Bitmap cachedBitmap = imageReference != null ? memoryCache.get(imageReference.getUrl()) : null;
 
 		if (cachedBitmap != null && !cachedBitmap.isRecycled()) {
-			Log.d(TAG, "toBlob() - using cached Bitmap");
 			return TiBlob.blobFromImage(cachedBitmap);
 
 		} else {
