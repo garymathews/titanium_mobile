@@ -25,6 +25,7 @@ import org.appcelerator.titanium.TiBlob;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiLifecycle.OnLifecycleEvent;
 import org.appcelerator.titanium.proxy.TiViewProxy;
+import org.appcelerator.titanium.util.TiBlobLruCache;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiDownloadListener;
 import org.appcelerator.titanium.util.TiDownloadManager;
@@ -140,11 +141,11 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 						if (imgsrc == null) {
 							return;
 						}
-						if (imgsrc.hashCode() == hash
+						if (imgsrc.getUrl().hashCode() == hash
 							|| (imgsrc.getUrl() != null
 								&& TiDrawableReference
 										   .fromUrl(imageViewProxy, TiUrl.getCleanUri(imgsrc.getUrl()).toString())
-										   .hashCode()
+										   .getUrl().hashCode()
 									   == hash)) {
 							setImage(bitmap);
 							if (!firedLoad) {
@@ -236,7 +237,7 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 			if (imageref.equals(imgsrc)
 				|| imageref.equals(
 					   TiDrawableReference.fromUrl(imageViewProxy, TiUrl.getCleanUri(imgsrc.getUrl()).toString()))) {
-				int hash = imageref.hashCode();
+				int hash = imageref.getUrl().hashCode();
 				Bitmap bitmap = imageref.getBitmap(true);
 				if (bitmap != null) {
 					if (mMemoryCache.get(hash) == null) {
@@ -396,7 +397,7 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 						TiDrawableReference imageRef = imageSources.get(j);
 						Bitmap b = null;
 						if (shouldCache) {
-							int hash = imageRef.hashCode();
+							int hash = imageRef.getUrl().hashCode();
 							b = mMemoryCache.get(hash);
 							if (b == null) {
 								Log.i(TAG, "Image isn't cached");
@@ -718,7 +719,7 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 			TiDrawableReference imageref = imageSources.get(0);
 
 			// Check if the image is cached in memory
-			int hash = imageref.hashCode();
+			int hash = imageref.getUrl().hashCode();
 			Bitmap bitmap = mMemoryCache.get(hash);
 			if (bitmap != null) {
 				if (!bitmap.isRecycled()) {
@@ -951,15 +952,30 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 
 	public TiBlob toBlob()
 	{
-		TiImageView view = getView();
-		if (view != null) {
-			Drawable drawable = view.getImageDrawable();
-			if (drawable != null && drawable instanceof BitmapDrawable) {
-				Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
-				if (bitmap == null && imageSources != null && imageSources.size() == 1) {
-					bitmap = imageSources.get(0).getBitmap(true);
+		TiBlobLruCache memoryCache = TiBlobLruCache.getInstance();
+		TiDrawableReference imageReference = imageSources != null && imageSources.size() == 1 ? imageSources.get(0) : null;
+		Bitmap cachedBitmap = imageReference != null ? memoryCache.get(imageReference.getUrl()) : null;
+
+		if (cachedBitmap != null && !cachedBitmap.isRecycled()) {
+			Log.d(TAG, "toBlob() - using cached Bitmap");
+			return TiBlob.blobFromImage(cachedBitmap);
+
+		} else {
+			TiImageView view = getView();
+			if (view != null) {
+				Drawable drawable = view.getImageDrawable();
+				if (drawable != null && drawable instanceof BitmapDrawable) {
+					Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
+					if (bitmap == null && imageSources != null && imageSources.size() == 1) {
+						bitmap = imageSources.get(0).getBitmap(true);
+					}
+					if (bitmap != null) {
+						if (imageReference != null) {
+							memoryCache.put(imageReference.getUrl(), bitmap);
+						}
+						return TiBlob.blobFromImage(bitmap);
+					}
 				}
-				return bitmap == null ? null : TiBlob.blobFromImage(bitmap);
 			}
 		}
 
@@ -996,7 +1012,7 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 		{
 			if (imageSources != null) {
 				for (TiDrawableReference imageref : imageSources) {
-					int hash = imageref.hashCode();
+					int hash = imageref.getUrl().hashCode();
 					mMemoryCache.remove(hash); //Release the cached images
 				}
 				imageSources.clear();
@@ -1008,6 +1024,10 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 			timer = null;
 		}
 		defaultImageSource = null;
+
+		if (nativeView instanceof TiImageView) {
+			((TiImageView) nativeView).release();
+		}
 
 		super.release();
 	}

@@ -497,6 +497,13 @@ public class TiImageView extends ViewGroup implements Handler.Callback, OnClickL
 		}
 	}
 
+	public void release()
+	{
+		if (imageView != null) {
+			imageView = null;
+		}
+	}
+
 	public int getTintColor()
 	{
 		return tintColor;

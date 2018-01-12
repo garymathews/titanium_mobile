@@ -7,6 +7,7 @@
 package ti.modules.titanium.ui;
 
 import org.appcelerator.kroll.annotations.Kroll;
+import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiBlob;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.view.TiUIView;
@@ -38,6 +39,19 @@ public class ImageViewProxy extends ViewProxy
 	public TiUIView createView(Activity activity)
 	{
 		return new TiUIImageView(this);
+	}
+
+	@Override
+	public void release()
+	{
+		this.view.release();
+		super.release();
+	}
+
+	@Override
+	public TiBlob toImage()
+	{
+		return this.toBlob();
 	}
 
 	private TiUIImageView getImageView()
