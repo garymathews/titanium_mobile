@@ -90,10 +90,9 @@ public class TiUIDrawerLayout extends TiUIView
 		AppCompatActivity activity = (AppCompatActivity) proxy.getActivity();
 		LayoutInflater inflater = LayoutInflater.from(activity);
 		layout = (DrawerLayout) inflater.inflate(id_drawer_layout, null, false);
-		layout.setDrawerListener(new DrawerListener());
 
 		toolbar = (Toolbar) layout.findViewById(id_toolbar);
-		if (activity.getSupportActionBar() == null && activity.getActionBar() == null) {
+		if (activity != null && activity.getSupportActionBar() == null && activity.getActionBar() == null) {
 			activity.setSupportActionBar(toolbar);
 			if (!toolbarEnabled) {
 				toolbarEnabled = true;
@@ -254,8 +253,8 @@ public class TiUIDrawerLayout extends TiUIView
 	private void initDrawerToggle()
 	{
 
-		AppCompatActivity activity = (AppCompatActivity) proxy.getActivity();
-		if (activity.getSupportActionBar() == null) {
+		final AppCompatActivity activity = (AppCompatActivity) proxy.getActivity();
+		if (activity != null && activity.getSupportActionBar() == null) {
 			return;
 		}
 
@@ -266,28 +265,32 @@ public class TiUIDrawerLayout extends TiUIView
 			@Override
 			public void onDrawerClosed(View drawerView)
 			{
+				super.onDrawerClosed(drawerView);
 				drawerClosedEvent(drawerView);
 			}
 
 			@Override
 			public void onDrawerOpened(View drawerView)
 			{
+				super.onDrawerOpened(drawerView);
 				drawerOpenedEvent(drawerView);
 			}
 
 			@Override
 			public void onDrawerSlide(View drawerView, float slideOffset)
 			{
+				super.onDrawerSlide(drawerView, slideOffset);
 				drawerSlideEvent(drawerView, slideOffset);
 			}
 
 			@Override
 			public void onDrawerStateChanged(int state)
 			{
+				super.onDrawerStateChanged(state);
 				drawerStateChangedEvent(state);
 			}
 		};
-		layout.setDrawerListener(drawerToggle);
+		layout.addDrawerListener(drawerToggle);
 		layout.post(new Runnable() {
 			@Override
 			public void run()
@@ -569,7 +572,7 @@ public class TiUIDrawerLayout extends TiUIView
 	{
 		if (layout != null) {
 			layout.removeAllViews();
-			layout.setDrawerListener(null);
+			layout.removeDrawerListener(drawerToggle);
 			layout = null;
 		}
 		if (leftFrame != null) {
@@ -608,7 +611,9 @@ public class TiUIDrawerLayout extends TiUIView
 
 	private View getNativeView(TiViewProxy viewProxy)
 	{
-		View nativeView = viewProxy.getOrCreateView().getOuterView();
+		TiUIView view = viewProxy.getOrCreateView();
+		View outerView = view.getOuterView();
+		View nativeView = outerView != null ? outerView : view.getNativeView();
 		ViewGroup parentViewGroup = (ViewGroup) nativeView.getParent();
 		if (parentViewGroup != null) {
 			parentViewGroup.removeAllViews();
