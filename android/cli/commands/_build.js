@@ -2699,27 +2699,26 @@ AndroidBuilder.prototype.copyResources = function copyResources(next) {
 				try {
 					this.cli.createHook('build.android.copyResource', this, function (from, to, cb) {
 						// parse the AST
-						const r = jsanalyze.analyzeJsFile(from, { minify: this.minifyJS });
+						const transpile = this.cli.tiapp.transpile || false;
+						const originalContents = fs.readFileSync(from).toString();
+						const r = jsanalyze.analyzeJs(originalContents, { filename: from, minify: this.minifyJS, transpile: transpile, targets: { chrome: '62' } });
+						const newContents = r.contents;
 
 						// we want to sort by the "to" filename so that we correctly handle file overwriting
 						this.tiSymbols[to] = r.symbols;
 
-						const dir = path.dirname(to);
-						fs.existsSync(dir) || wrench.mkdirSyncRecursive(dir);
+						this.cli.createHook('build.android.compileJsFile', this, function (r, from, to, cb2) {
+							const dir = path.dirname(to);
+							fs.existsSync(dir) || wrench.mkdirSyncRecursive(dir);
 
-						if (this.minifyJS) {
-							this.logger.debug(__('Copying and minifying %s => %s', from.cyan, to.cyan));
-
-							this.cli.createHook('build.android.compileJsFile', this, function (r, from, to, cb2) {
-								fs.writeFile(to, r.contents, cb2);
-							})(r, from, to, cb);
-						} else if (symlinkFiles) {
-							copyFile.call(this, from, to, cb);
-						} else {
-							// we've already read in the file, so just write the original contents
-							this.logger.debug(__('Copying %s => %s', from.cyan, to.cyan));
-							fs.writeFile(to, r.contents, cb);
-						}
+							if (symlinkFiles && newContents === originalContents) {
+								copyFile.call(this, from, to, cb2);
+							} else {
+								// we've already read in the file, so just write the original contents
+								this.logger.debug(__('Processed %s', to.cyan));
+								fs.writeFile(to, newContents, cb2);
+							}
+						})(r, from, to, cb);
 					})(from, to, done);
 				} catch (ex) {
 					ex.message.split('\n').forEach(this.logger.error);

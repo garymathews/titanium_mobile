@@ -5778,47 +5778,38 @@ iOSBuilder.prototype.copyResources = function copyResources(next) {
 						this.jsFilesToEncrypt.push(file);
 					}
 
-					this.cli.createHook('build.ios.copyResource', this, function (from, to, cb) {
-						let r;
-						try {
+					try {
+						this.cli.createHook('build.ios.copyResource', this, function (from, to, cb) {
 							// parse the AST
-							r = jsanalyze.analyzeJsFile(from, { minify: this.minifyJS });
-						} catch (ex) {
-							ex.message.split('\n').forEach(this.logger.error);
-							this.logger.log();
-							process.exit(1);
-						}
+							const transpile = this.cli.tiapp.transpile || false;
+							const originalContents = fs.readFileSync(from).toString();
+							const r = jsanalyze.analyzeJs(originalContents, { filename: from, minify: this.minifyJS, transpile: transpile, targets: { safari: '10' } });
+							const newContents = r.contents;
 
-						// we want to sort by the "to" filename so that we correctly handle file overwriting
-						this.tiSymbols[to] = r.symbols;
+							// we want to sort by the "to" filename so that we correctly handle file overwriting
+							this.tiSymbols[to] = r.symbols;
 
-						const dir = path.dirname(to);
-						fs.existsSync(dir) || wrench.mkdirSyncRecursive(dir);
-
-						this.unmarkBuildDirFile(to);
-
-						if (this.minifyJS) {
 							this.cli.createHook('build.ios.compileJsFile', this, function (r, from, to, cb2) {
-								const exists = fs.existsSync(to);
-								if (!exists || r.contents !== fs.readFileSync(to).toString()) {
-									this.logger.debug(__('Copying and minifying %s => %s', from.cyan, to.cyan));
-									exists && fs.unlinkSync(to);
-									fs.writeFileSync(to, r.contents);
-									this.jsFilesChanged = true;
+								const dir = path.dirname(to);
+								fs.existsSync(dir) || wrench.mkdirSyncRecursive(dir);
+
+								this.unmarkBuildDirFile(to);
+
+								if (symlinkFiles && newContents === originalContents) {
+									copyFile.call(this, from, to, cb2);
 								} else {
-									this.logger.trace(__('No change, skipping %s', to.cyan));
+									// we've already read in the file, so just write the original contents
+									this.logger.debug(__('Processed %s', to.cyan));
+									this.jsFilesChanged = true;
+									fs.writeFile(to, newContents, cb2);
 								}
-								cb2();
 							})(r, from, to, cb);
-						} else {
-							if (this.copyFileSync(from, to)) {
-								this.jsFilesChanged = true;
-							} else {
-								this.logger.trace(__('No change, skipping %s', to.cyan));
-							}
-							cb();
-						}
-					})(info.src, info.dest, next);
+						})(info.src, info.dest, next);
+					} catch (ex) {
+						ex.message.split('\n').forEach(this.logger.error);
+						this.logger.log();
+						process.exit(1);
+					}
 				}.bind(this));
 			}.bind(this), next);
 		},
