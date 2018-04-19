@@ -22,7 +22,6 @@ import org.json.JSONObject;
 import android.util.Log;
 
 import com.appcelerator.aps.APSAnalytics;
-import com.appcelerator.aps.APSAnalyticsEvent;
 
 @Kroll.module
 public class AnalyticsModule extends KrollModule
@@ -61,16 +60,16 @@ public class AnalyticsModule extends KrollModule
 				event = "";
 			}
 			if (data instanceof HashMap) {
-				analytics.sendAppNavEvent(from, to, event, TiConvert.toJSON(data));
+				analytics.sendAppNavEvent(from, to, TiConvert.toJSON(data));
 
 			} else if (data != null) {
 				try {
-					analytics.sendAppNavEvent(from, to, event, new JSONObject(data.toString()));
+					analytics.sendAppNavEvent(from, to, new JSONObject(data.toString()));
 				} catch (JSONException e) {
 					Log.e(TAG, "Cannot convert data into JSON");
 				}
 			} else {
-				analytics.sendAppNavEvent(from, to, event, null);
+				analytics.sendAppNavEvent(from, to, null);
 			}
 		} else {
 			Log.e(
@@ -190,29 +189,7 @@ public class AnalyticsModule extends KrollModule
 	// clang-format on
 	{
 		if (TiApplication.getInstance().isAnalyticsEnabled()) {
-			TiPlatformHelper platformHelper = TiPlatformHelper.getInstance();
-			APSAnalyticsEvent event = platformHelper.getLastEvent();
-			if (event != null) {
-				try {
-					JSONObject json = new JSONObject();
-					json.put("ver", platformHelper.getDBVersion());
-					json.put("id", platformHelper.getLastEventID());
-					json.put("event", event.getEventType());
-					json.put("ts", event.getEventTimestamp());
-					json.put("mid", event.getEventMid());
-					json.put("sid", event.getEventSid());
-					json.put("aguid", event.getEventAppGuid());
-					json.put("seq", event.getEventSeq());
-					if (event.mustExpandPayload()) {
-						json.put("data", new JSONObject(event.getEventPayload()));
-					} else {
-						json.put("data", event.getEventPayload());
-					}
-					return json.toString();
-				} catch (JSONException e) {
-					Log.e(TAG, "Error generating last event.", e);
-				}
-			}
+			return analytics.getLastEvent().toString();
 		} else {
 			Log.e(
 				TAG,
