@@ -185,7 +185,6 @@ public class GeolocationModule extends KrollModule implements Handler.Callback, 
 	private Context context;
 	private TiCompass tiCompass;
 	private boolean compassListenersRegistered = false;
-	private boolean sentAnalytics = false;
 	private ArrayList<LocationRuleProxy> simpleLocationRules = new ArrayList<LocationRuleProxy>();
 	private LocationRuleProxy simpleLocationGpsRule;
 	private LocationRuleProxy simpleLocationNetworkRule;
@@ -261,14 +260,6 @@ public class GeolocationModule extends KrollModule implements Handler.Callback, 
 		return super.handleMessage(message);
 	}
 
-	private void doAnalytics(Location location)
-	{
-		if (!sentAnalytics) {
-			tiLocation.doAnalytics(location);
-			sentAnalytics = true;
-		}
-	}
-
 	/**
 	 * Called by a registered location provider when a location update is received
 	 *
@@ -283,7 +274,6 @@ public class GeolocationModule extends KrollModule implements Handler.Callback, 
 			fireEvent(TiC.EVENT_LOCATION,
 					  buildLocationEvent(location, tiLocation.locationManager.getProvider(location.getProvider())));
 			currentLocation = location;
-			doAnalytics(location);
 		}
 	}
 
@@ -581,7 +571,6 @@ public class GeolocationModule extends KrollModule implements Handler.Callback, 
 					fireEvent(TiC.EVENT_LOCATION,
 							  buildLocationEvent(lastLocation,
 												 tiLocation.locationManager.getProvider(lastLocation.getProvider())));
-					doAnalytics(lastLocation);
 				}
 			}
 		}
