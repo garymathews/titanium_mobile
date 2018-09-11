@@ -10,6 +10,7 @@
 #import "Mimetypes.h"
 #import "TiApp.h"
 #import "TiBlob.h"
+#import "TiExceptionHandler.h"
 #import "TiFile.h"
 #import "TiHost.h"
 #import "TiProxy.h"
@@ -766,6 +767,16 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
     if ([scheme isEqualToString:@"file"] || [scheme isEqualToString:@"app"]) {
       [LocalProtocolHandler setContentInjection:[self titaniumInjection]];
     }
+
+    // Use "onlink" callback property to decide the navigation policy
+    KrollWrapper *onLink = [[self proxy] valueForKey:@"onlink"];
+    if (onLink != nil) {
+      JSValueRef functionResult = [onLink executeWithArguments:@[ @{ @"url" : newUrl.absoluteString } ]];
+      if (functionResult != NULL && JSValueIsBoolean([onLink.bridge.krollContext context], functionResult)) {
+        return JSValueToBoolean([onLink.bridge.krollContext context], functionResult);
+      }
+    }
+
     return YES;
   }
 

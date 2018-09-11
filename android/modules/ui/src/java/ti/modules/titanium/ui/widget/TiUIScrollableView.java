@@ -7,6 +7,7 @@
 package ti.modules.titanium.ui.widget;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.lang.Math;
 import java.util.Arrays;
 
@@ -69,6 +70,9 @@ public class TiUIScrollableView extends TiUIView
 		mNewViews = new ArrayList<Object>();
 		mAdapter = new ViewPagerAdapter(activity, mViews, mNewViews);
 		mPager = buildViewPager(activity, mAdapter);
+		if (proxy.hasPropertyAndNotNull(TiC.PROPERTY_CLIP_VIEWS)) {
+			mPager.setClipToPadding(TiConvert.toBoolean(proxy.getProperty(TiC.PROPERTY_CLIP_VIEWS), true));
+		}
 		mContainer.addView(mPager, new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 
 		// Add paging controls to container.
@@ -339,6 +343,10 @@ public class TiUIScrollableView extends TiUIView
 			setPageCacheSize(TiConvert.toInt(d.get(TiC.PROPERTY_CACHE_SIZE)));
 		}
 
+		if (d.containsKey(TiC.PROPERTY_PADDING)) {
+			setPadding((HashMap) d.get(TiC.PROPERTY_PADDING));
+		}
+
 		super.processProperties(d);
 	}
 
@@ -360,6 +368,8 @@ public class TiUIScrollableView extends TiUIView
 			} else {
 				hidePager();
 			}
+		} else if (TiC.PROPERTY_PADDING.equals(key)) {
+			setPadding((HashMap) newValue);
 		} else if (TiC.PROPERTY_SCROLLING_ENABLED.equals(key)) {
 			mEnabled = TiConvert.toBoolean(newValue);
 		} else if (TiC.PROPERTY_OVER_SCROLL_MODE.equals(key)) {
@@ -535,6 +545,32 @@ public class TiUIScrollableView extends TiUIView
 				mAdapter.notifyDataSetChanged();
 			}
 		}
+	}
+
+	private void setPadding(HashMap<String, Object> d)
+	{
+		int paddingLeft = mPager.getPaddingLeft();
+		int paddingRight = mPager.getPaddingRight();
+		int paddingTop = mPager.getPaddingTop();
+		int paddingBottom = mPager.getPaddingBottom();
+
+		if (d.containsKey(TiC.PROPERTY_LEFT)) {
+			paddingLeft = TiConvert.toInt(d.get(TiC.PROPERTY_LEFT), 0);
+		}
+
+		if (d.containsKey(TiC.PROPERTY_RIGHT)) {
+			paddingRight = TiConvert.toInt(d.get(TiC.PROPERTY_RIGHT), 0);
+		}
+
+		if (d.containsKey(TiC.PROPERTY_TOP)) {
+			paddingTop = TiConvert.toInt(d.get(TiC.PROPERTY_TOP), 0);
+		}
+
+		if (d.containsKey(TiC.PROPERTY_BOTTOM)) {
+			paddingBottom = TiConvert.toInt(d.get(TiC.PROPERTY_BOTTOM), 0);
+		}
+
+		mPager.setPadding(paddingLeft, paddingTop, paddingRight, paddingBottom);
 	}
 
 	@Override

@@ -113,7 +113,7 @@ Local<FunctionTemplate> ${className}::getProxyTemplate(Isolate* isolate)
 		FunctionTemplate::New(isolate, titanium::Proxy::inherit<${className}>));
 
 	// Method bindings --------------------------------------------------------
-	<@Proxy.listMethods ; isFirst, name, method, signature>
+	<@Proxy.listMethods ; isFirst, name, method>
 	titanium::SetProtoMethod(isolate, t, "${method.apiName}", ${className}::${method.apiName});
 	</@Proxy.listMethods>
 
@@ -233,7 +233,7 @@ Local<FunctionTemplate> ${className}::getProxyTemplate(Isolate* isolate)
 }
 
 // Methods --------------------------------------------------------------------
-<@Proxy.listMethods ; isFirst, name, method, signature>
+<@Proxy.listMethods ; isFirst, name, method, signature, isDynamic>
 void ${className}::${method.apiName}(const FunctionCallbackInfo<Value>& args)
 {
 	LOGD(TAG, "${method.apiName}()");
@@ -243,18 +243,25 @@ void ${className}::${method.apiName}(const FunctionCallbackInfo<Value>& args)
 	<@Proxy.initJNIEnv/>
 	<@Proxy.initMethodID className=className name=name signature=signature logOnly=false/>
 
-	Local<Object> holder = args.Holder();
-	// If holder isn't the JavaObject wrapper we expect, look up the prototype chain
-	if (!JavaObject::isJavaObject(holder)) {
-		holder = holder->FindInstanceInPrototypeChain(getProxyTemplate(isolate));
-	}
-
+	<@Proxy.getHolder/>
 	titanium::Proxy* proxy = NativeObject::Unwrap<titanium::Proxy>(holder);
+	if (!proxy) {
+		args.GetReturnValue().Set(Undefined(isolate));
+		return;
+	}
 
 	<#if method.args?size &gt; 0>
 	<@Proxy.verifyAndConvertArguments method.args method />
 	<#else>
 	jvalue* jArguments = 0;
+	</#if>
+
+	<#if method.args?size == 0 && name[0..2] == "get" && isDynamic>
+		<#assign propertyName = name[3]?lower_case + name[4..]>
+	LOGW(TAG, "Automatic getter methods for properties are deprecated in SDK 8.0.0 and will be removed in SDK 9.0.0. Please access the property in standard JS style: obj.${propertyName}; or obj['${propertyName}'];");
+	<#elseif method.args?size == 1 && name[0..2] == "set" && isDynamic>
+		<#assign propertyName = name[3]?lower_case + name[4..]>
+	LOGW(TAG, "Automatic setter methods for properties are deprecated in SDK 8.0.0 and will be removed in SDK 9.0.0. Please modify the property in standard JS style: obj.${propertyName} = value; or obj['${propertyName}'] = value;");
 	</#if>
 
 	jobject javaProxy = proxy->getJavaObject();
@@ -287,8 +294,8 @@ void ${className}::getter_${name}(Local<Name> property, const PropertyCallbackIn
 	<@Proxy.initJNIEnv/>
 	<@Proxy.initMethodID className=className name=property.getMethodName signature=getSignature logOnly=false/>
 
-	titanium::Proxy* proxy = NativeObject::Unwrap<titanium::Proxy>(args.Holder());
-
+	<@Proxy.getHolder/>
+	titanium::Proxy* proxy = NativeObject::Unwrap<titanium::Proxy>(holder);
 	if (!proxy) {
 		args.GetReturnValue().Set(Undefined(isolate));
 		return;
@@ -324,7 +331,8 @@ void ${className}::setter_${name}(Local<Name> property, Local<Value> value, cons
 
 	<@Proxy.initMethodID className=className name=property.setMethodName signature=setSignature logOnly=true />
 
-	titanium::Proxy* proxy = NativeObject::Unwrap<titanium::Proxy>(args.Holder());
+	<@Proxy.getHolder/>
+	titanium::Proxy* proxy = NativeObject::Unwrap<titanium::Proxy>(holder);
 	if (!proxy) {
 		return;
 	}
@@ -363,8 +371,8 @@ void ${className}::interceptor(Local<String> property, const v8::PropertyCallbac
 	<@Proxy.initJNIEnv/>
 	<@Proxy.initMethodID className=className name=interceptor.name signature="(Ljava/lang/String;)Ljava/lang/Object;" logOnly=false/>
 
-	titanium::Proxy* proxy = NativeObject::Unwrap<titanium::Proxy>(args.Holder());
-
+	<@Proxy.getHolder/>
+	titanium::Proxy* proxy = NativeObject::Unwrap<titanium::Proxy>(holder);
 	if (!proxy) {
 		args.GetReturnValue().Set(Undefined(isolate));
 		return;

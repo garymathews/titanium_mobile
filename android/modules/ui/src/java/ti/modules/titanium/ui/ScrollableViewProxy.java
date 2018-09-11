@@ -36,6 +36,8 @@ import android.os.Message;
 		TiC.PROPERTY_SCROLLING_ENABLED,
 		TiC.PROPERTY_VIEWS,
 		TiC.PROPERTY_CACHE_SIZE,
+		TiC.PROPERTY_CLIP_VIEWS,
+		TiC.PROPERTY_PADDING,
 		TiC.PROPERTY_SHOW_PAGING_CONTROL,
 		TiC.PROPERTY_OVER_SCROLL_MODE
 })
@@ -65,6 +67,7 @@ public class ScrollableViewProxy extends TiViewProxy
 		defaultValues.put(TiC.PROPERTY_PAGING_CONTROL_HEIGHT, 20);
 		defaultValues.put(TiC.PROPERTY_PAGING_CONTROL_ON_TOP, false);
 		defaultValues.put(TiC.PROPERTY_CACHE_SIZE, MIN_CACHE_SIZE);
+		defaultValues.put(TiC.PROPERTY_CLIP_VIEWS, true);
 		defaultValues.put(TiC.PROPERTY_SHOW_PAGING_CONTROL, false);
 		defaultValues.put(TiC.PROPERTY_OVER_SCROLL_MODE, 0);
 		defaultValues.put(TiC.PROPERTY_CURRENT_PAGE, 0);
