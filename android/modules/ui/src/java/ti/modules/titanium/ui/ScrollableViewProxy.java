@@ -74,6 +74,8 @@ public class ScrollableViewProxy extends TiViewProxy
 		defaultValues.put(TiC.PROPERTY_SCROLLING_ENABLED, true);
 		defaultValues.put(TiC.PROPERTY_VIEWS, new Object[0]);
 		defaultValues.put(ScrollableViewProxy.USE_LEGACY_CONTROL, false);
+		defaultValues.put(TiC.PROPERTY_PAGE_INDICATOR_COLOR, "#808080");
+		defaultValues.put(TiC.PROPERTY_CURRENT_PAGE_INDICATOR_COLOR, "#FFFFFF");
 	}
 
 	@Override
