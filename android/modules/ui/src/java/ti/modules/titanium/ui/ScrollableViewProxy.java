@@ -70,7 +70,7 @@ public class ScrollableViewProxy extends TiViewProxy
 		defaultValues.put(TiC.PROPERTY_CURRENT_PAGE, 0);
 		defaultValues.put(TiC.PROPERTY_SCROLLING_ENABLED, true);
 		defaultValues.put(TiC.PROPERTY_VIEWS, new Object[0]);
-		defaultValues.put(ScrollableViewProxy.USE_LEGACY_CONTROL, true);
+		defaultValues.put(ScrollableViewProxy.USE_LEGACY_CONTROL, false);
 	}
 
 	@Override
