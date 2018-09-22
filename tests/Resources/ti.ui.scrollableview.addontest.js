@@ -10,7 +10,7 @@
 'use strict';
 var should = require('./utilities/assertions');
 
-describe('Titanium.UI.ScrollableView', function () {
+describe('Titanium.UI.ScrollableView.TIMOB-17546', function () {
 	var win;
 	this.timeout(5000);
 
@@ -26,23 +26,7 @@ describe('Titanium.UI.ScrollableView', function () {
 		}
 	});
 
-	it('apiName', function () {
-		var scrollableView = Ti.UI.createScrollableView({});
-		should(scrollableView).have.readOnlyProperty('apiName').which.is.a.String;
-		should(scrollableView.apiName).be.eql('Ti.UI.ScrollableView');
-	});
-
-	it.iosBroken('views', function () {
-		var bar = Ti.UI.createScrollableView({});
-		should(bar.views).be.an.Array; // iOS returns undefined
-		should(bar.getViews).be.a.Function;
-		should(bar.views).be.empty;
-		should(bar.getViews()).be.empty;
-		bar.views = [ Ti.UI.createView(), Ti.UI.createView() ];
-		should(bar.views.length).eql(2);
-		should(bar.getViews().length).eql(2);
-	});
-
+	// Fixed android
 	it('currentPage', function () {
 		var bar = Ti.UI.createScrollableView({});
 		should(bar.currentPage).be.a.Number;
@@ -55,6 +39,7 @@ describe('Titanium.UI.ScrollableView', function () {
 		should(bar.getCurrentPage()).eql(1);
 	});
 
+    // Fixed android
 	it.windowsBroken('moveX-scrollTo', function (finish) {
 		var testName = null,
 			nextPageIndex = 0,
@@ -106,6 +91,60 @@ describe('Titanium.UI.ScrollableView', function () {
 			if (!testName) {
 				doNextTest();
 			}
+		});
+		win.open();
+	});
+
+	it('without paging control', function(finish) {
+		win = Ti.UI.createWindow();
+		var bar = Ti.UI.createScrollableView({
+			showPagingControl: false,
+			views: [ Ti.UI.createView(), Ti.UI.createView(), Ti.UI.createView() ]
+		});
+		win.add(bar);
+		win.addEventListener('postlayout', function() {
+			finish()
+		});
+		win.open();
+	});
+
+	it('with paging control', function(finish) {
+		win = Ti.UI.createWindow();
+		var bar = Ti.UI.createScrollableView({
+			showPagingControl: true,
+			views: [ Ti.UI.createView(), Ti.UI.createView(), Ti.UI.createView() ]
+		});
+		win.add(bar);
+		win.addEventListener('postlayout', function() {
+			finish()
+		});
+		win.open();
+	});
+
+	it.android('with legacy paging control', function(finish) {
+		win = Ti.UI.createWindow();
+		var bar = Ti.UI.createScrollableView({
+			useLegacyControl: true,
+			showPagingControl: true,
+			views: [ Ti.UI.createView(), Ti.UI.createView(), Ti.UI.createView() ]
+		});
+		win.add(bar);
+		win.addEventListener('postlayout', function() {
+			finish()
+		});
+		win.open();
+	});
+
+	it.android('with hidden legacy paging control', function(finish) {
+		win = Ti.UI.createWindow();
+		var bar = Ti.UI.createScrollableView({
+			useLegacyControl: true,
+			showPagingControl: false,
+			views: [ Ti.UI.createView(), Ti.UI.createView(), Ti.UI.createView() ]
+		});
+		win.add(bar);
+		win.addEventListener('postlayout', function() {
+			finish();
 		});
 		win.open();
 	});
