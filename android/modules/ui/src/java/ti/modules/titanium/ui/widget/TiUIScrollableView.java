@@ -450,9 +450,9 @@ public class TiUIScrollableView extends TiUIView
 			if (mPagingControl == null) {
 				mPagingControl = buildPagingControl();
 			}
+			mPagingControl.setVisibility(View.VISIBLE);
+			((ScrollableViewProxy) proxy).setPagerTimeout();
 		}
-		mPagingControl.setVisibility(View.VISIBLE);
-		((ScrollableViewProxy) proxy).setPagerTimeout();
 	}
 
 	public void hidePager()
