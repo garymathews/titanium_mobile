@@ -39,7 +39,7 @@ describe('Titanium.UI.ScrollableView.TIMOB-17546', function () {
 		should(bar.getCurrentPage()).eql(1);
 	});
 
-    // Fixed android
+	// Fixed android
 	it.windowsBroken('moveX-scrollTo', function (finish) {
 		var testName = null,
 			nextPageIndex = 0,
@@ -95,33 +95,33 @@ describe('Titanium.UI.ScrollableView.TIMOB-17546', function () {
 		win.open();
 	});
 
-	it('without paging control', function(finish) {
+	it('without paging control', function (finish) {
 		win = Ti.UI.createWindow();
 		var bar = Ti.UI.createScrollableView({
 			showPagingControl: false,
 			views: [ Ti.UI.createView(), Ti.UI.createView(), Ti.UI.createView() ]
 		});
 		win.add(bar);
-		win.addEventListener('postlayout', function() {
-			finish()
+		win.addEventListener('postlayout', function () {
+			finish();
 		});
 		win.open();
 	});
 
-	it('with paging control', function(finish) {
+	it('with paging control', function (finish) {
 		win = Ti.UI.createWindow();
 		var bar = Ti.UI.createScrollableView({
 			showPagingControl: true,
 			views: [ Ti.UI.createView(), Ti.UI.createView(), Ti.UI.createView() ]
 		});
 		win.add(bar);
-		win.addEventListener('postlayout', function() {
-			finish()
+		win.addEventListener('postlayout', function () {
+			finish();
 		});
 		win.open();
 	});
 
-	it.android('with legacy paging control', function(finish) {
+	it.android('with legacy paging control', function (finish) {
 		win = Ti.UI.createWindow();
 		var bar = Ti.UI.createScrollableView({
 			useLegacyControl: true,
@@ -129,13 +129,13 @@ describe('Titanium.UI.ScrollableView.TIMOB-17546', function () {
 			views: [ Ti.UI.createView(), Ti.UI.createView(), Ti.UI.createView() ]
 		});
 		win.add(bar);
-		win.addEventListener('postlayout', function() {
-			finish()
+		win.addEventListener('postlayout', function () {
+			finish();
 		});
 		win.open();
 	});
 
-	it.android('with hidden legacy paging control', function(finish) {
+	it.android('with hidden legacy paging control', function (finish) {
 		win = Ti.UI.createWindow();
 		var bar = Ti.UI.createScrollableView({
 			useLegacyControl: true,
@@ -143,7 +143,7 @@ describe('Titanium.UI.ScrollableView.TIMOB-17546', function () {
 			views: [ Ti.UI.createView(), Ti.UI.createView(), Ti.UI.createView() ]
 		});
 		win.add(bar);
-		win.addEventListener('postlayout', function() {
+		win.addEventListener('postlayout', function () {
 			finish();
 		});
 		win.open();
