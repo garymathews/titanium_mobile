@@ -799,7 +799,7 @@ public abstract class TiApplication extends Application implements KrollApplicat
 		runtime.initRuntime();
 
 		// manually re-launch app
-		runtime.doRunModule(KrollAssetHelper.readAsset(appPath), appPath, rootActivity.getActivityProxy());
+		runtime.doRunModuleBytes(KrollAssetHelper.readAssetBytes(appPath), appPath, rootActivity.getActivityProxy());
 	}
 
 	@Override

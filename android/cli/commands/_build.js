@@ -42,6 +42,7 @@ const ADB = require('node-titanium-sdk/lib/adb'),
 	tiappxml = require('node-titanium-sdk/lib/tiappxml'),
 	url = require('url'),
 	util = require('util'),
+	Cloak = require('ti.cloak').default,
 
 	afs = appc.fs,
 	i18nLib = appc.i18n(__dirname),
@@ -1929,6 +1930,10 @@ AndroidBuilder.prototype.initialize = function initialize(next) {
 	this.buildManifestFile          = path.join(this.buildDir, 'build-manifest.json');
 	this.androidManifestFile        = path.join(this.buildDir, 'AndroidManifest.xml');
 
+	// libraries
+	this.titaniumVerifyLibrary      = path.join(this.platformPath, 'lib', 'titanium-verify.jar');
+	this.titaniumCloakLibrary       = path.join(this.platformPath, 'lib', 'ti.cloak.jar');
+
 	const suffix = this.debugPort || this.profilerPort ? '-dev' + (this.debugPort ? '-debug' : '') + (this.profilerPort ? '-profiler' : '') : '';
 	this.unsignedApkFile            = path.join(this.buildBinDir, 'app-unsigned' + suffix + '.apk');
 	this.apkFile                    = path.join(this.buildBinDir, this.tiapp.name + suffix + '.apk');
@@ -2355,7 +2360,8 @@ AndroidBuilder.prototype.copyResources = function copyResources(next) {
 		jsBootstrapFiles = [],
 		htmlJsFiles = this.htmlJsFiles = {},
 		symlinkFiles = process.platform !== 'win32' && this.config.get('android.symlinkResources', true),
-		_t = this;
+		_t = this,
+		cloak = this.encryptJS ? new Cloak() : null;
 
 	this.moduleResPackages = [];
 
@@ -2378,7 +2384,10 @@ AndroidBuilder.prototype.copyResources = function copyResources(next) {
 		}
 
 		if (symlinkFiles) {
+			// Remove prior symlink.
 			fs.existsSync(to) && fs.unlinkSync(to);
+			// Remove prior file. (if previously did not symlink)
+			fs.existsSync(to) && fs.removeSync(to);
 			this.logger.debug(__('Symlinking %s => %s', from.cyan, to.cyan));
 			if (next) {
 				fs.symlink(from, to, next);
@@ -2750,20 +2759,19 @@ AndroidBuilder.prototype.copyResources = function copyResources(next) {
 			});
 	});
 
-	appc.async.series(this, tasks, function () {
+	appc.async.series(this, tasks, async () => {
 		const templateDir = path.join(this.platformPath, 'templates', 'app', 'default', 'template', 'Resources', 'android');
-
 		const srcIcon = path.join(templateDir, 'appicon.png');
 		const destIcon = path.join(this.buildBinAssetsResourcesDir, this.tiapp.icon);
 
 		// if an app icon hasn't been copied, copy the default one
-		if (!fs.existsSync(destIcon)) {
+		if (!(await fs.exists(destIcon))) {
 			copyFile.call(this, srcIcon, destIcon);
 		}
 		this.unmarkBuildDirFile(destIcon);
 
 		const destIcon2 = path.join(this.buildResDrawableDir, this.tiapp.icon);
-		if (!fs.existsSync(destIcon2)) {
+		if (!(await fs.exists(destIcon2))) {
 			// Note, we are explicitly copying destIcon here as we want to ensure that we're
 			// copying the user specified icon, srcIcon is the default Titanium icon
 			copyFile.call(this, destIcon, destIcon2);
@@ -2774,7 +2782,7 @@ AndroidBuilder.prototype.copyResources = function copyResources(next) {
 		const backgroundRegExp = /^background(\.9)?\.(png|jpg)$/,
 			destBg = path.join(this.buildResDrawableDir, 'background.png'),
 			nodpiDir = path.join(this.buildResDir, 'drawable-nodpi');
-		if (!fs.readdirSync(this.buildResDrawableDir).some(function (name) {
+		if (!(await fs.readdir(this.buildResDrawableDir)).some(name => {
 			if (backgroundRegExp.test(name)) {
 				this.unmarkBuildDirFile(path.join(this.buildResDrawableDir, name));
 				return true;
@@ -2782,7 +2790,7 @@ AndroidBuilder.prototype.copyResources = function copyResources(next) {
 			return false;
 		}, this)) {
 			// no background image in drawable, but what about drawable-nodpi?
-			if (!fs.existsSync(nodpiDir) || !fs.readdirSync(nodpiDir).some(function (name) {
+			if (!(await fs.exists(nodpiDir)) || !(await fs.readdir(nodpiDir)).some(name => {
 				if (backgroundRegExp.test(name)) {
 					this.unmarkBuildDirFile(path.join(nodpiDir, name));
 					return true;
@@ -2801,10 +2809,7 @@ AndroidBuilder.prototype.copyResources = function copyResources(next) {
 		Object.keys(this.tiapp.properties).forEach(function (prop) {
 			props[prop] = this.tiapp.properties[prop].value;
 		}, this);
-		fs.writeFileSync(
-			appPropsFile,
-			JSON.stringify(props)
-		);
+		await fs.writeFile(appPropsFile, JSON.stringify(props));
 		this.encryptJS && jsFilesToEncrypt.push('_app_props_.json');
 		this.unmarkBuildDirFile(appPropsFile);
 
@@ -2812,8 +2817,8 @@ AndroidBuilder.prototype.copyResources = function copyResources(next) {
 		// Note: An empty array indicates the app has no bootstrap files.
 		const bootstrapJsonRelativePath = path.join('ti.internal', 'bootstrap.json'),
 			bootstrapJsonAbsolutePath = path.join(buildAssetsPath, bootstrapJsonRelativePath);
-		fs.ensureDirSync(path.dirname(bootstrapJsonAbsolutePath));
-		fs.writeFileSync(bootstrapJsonAbsolutePath, JSON.stringify({ scripts: jsBootstrapFiles }));
+		await fs.ensureDir(path.dirname(bootstrapJsonAbsolutePath));
+		await fs.writeFile(bootstrapJsonAbsolutePath, JSON.stringify({ scripts: jsBootstrapFiles }));
 		this.encryptJS && jsFilesToEncrypt.push(bootstrapJsonRelativePath);
 		this.unmarkBuildDirFile(bootstrapJsonAbsolutePath);
 
@@ -2821,90 +2826,51 @@ AndroidBuilder.prototype.copyResources = function copyResources(next) {
 			// nothing to encrypt, continue
 			return next();
 		}
-
-		// figure out which titanium prep to run
-		let titaniumPrep = 'titanium_prep';
-		if (process.platform === 'darwin') {
-			titaniumPrep += '.macos';
-		} else if (process.platform === 'win32') {
-			titaniumPrep += '.win32.exe';
-		} else if (process.platform === 'linux') {
-			titaniumPrep += '.linux' + (process.arch === 'x64' ? '64' : '32');
+		if (!cloak) {
+			this.logger.error('Could not load encryption library!');
+			process.exit(1);
 		}
 
-		// encrypt the javascript
-		const titaniumPrepHook = this.cli.createHook('build.android.titaniumprep', this, function (exe, args, opts, done) {
-			this.logger.info(__('Encrypting JavaScript files: %s', (exe + ' "' + args.slice(1).join('" "') + '"').cyan));
-			appc.subprocess.run(exe, args, opts, function (code, out, err) {
-				if (code) {
-					return done({
-						code: code,
-						msg: err.trim()
-					});
-				}
+		this.logger.info('Encrypting javascript assets...');
+		try {
+			await Promise.all(
+				jsFilesToEncrypt.map(async file => {
+					const from = path.join(this.buildAssetsDir, file);
+					const to = path.join(this.buildBinAssetsResourcesDir, file);
 
-				// write the encrypted JS bytes to the generated Java file
-				const assetCryptDest = path.join(this.buildGenAppIdDir, 'AssetCryptImpl.java');
-				this.unmarkBuildDirFile(assetCryptDest);
-				fs.writeFileSync(
-					assetCryptDest,
-					ejs.render(fs.readFileSync(path.join(this.templatesDir, 'AssetCryptImpl.java')).toString(), {
-						appid: this.appid,
-						encryptedAssets: out
-					})
-				);
-
-				done();
-			}.bind(this));
-		});
-		let args = [ this.tiapp.guid, this.appid, this.buildAssetsDir ].concat(jsFilesToEncrypt);
-		if (process.platform === 'win32') {
-			const fileListing = path.join(this.buildDir, 'titanium_prep_listing.txt');
-			args = [ this.tiapp.guid, this.appid, this.buildAssetsDir, '--file-listing', fileListing ];
-			fs.writeFileSync(fileListing, jsFilesToEncrypt.join('\n'));
-		}
-
-		const opts = {
-				env: appc.util.mix({}, process.env, {
-					// we force the JAVA_HOME so that titaniumprep doesn't complain
-					JAVA_HOME: this.jdkInfo.home
+					this.logger.debug(__('Encrypting: %s', from.cyan));
+					const content = await fs.readFile(from);
+					const output = await cloak.encrypt(content);
+					await fs.ensureDir(path.dirname(to));
+					this.unmarkBuildDirFile(to);
+					return fs.writeFile(to, output);
 				})
-			},
-			fatal = function fatal(err) {
-				this.logger.error(__('Failed to encrypt JavaScript files'));
-				err.msg.split('\n').forEach(this.logger.error);
-				this.logger.log();
-				process.exit(1);
-			}.bind(this);
+			);
 
-		titaniumPrepHook(
-			path.join(this.platformPath, titaniumPrep),
-			args.slice(0),
-			opts,
-			function (err) {
-				if (!err) {
-					return next();
-				}
+			this.logger.info('Writing encryption key...');
+			await cloak.setKey('android', this.abis, path.join(this.buildDir, 'libs'));
 
-				if (process.platform !== 'win32' || !/jvm\.dll/i.test(err.msg)) {
-					fatal(err);
-				}
-
-				this.logger.debug(__('32-bit titanium prep failed, trying again using 64-bit'));
-				titaniumPrep = 'titanium_prep.win64.exe';
-				titaniumPrepHook(
-					path.join(this.platformPath, titaniumPrep),
-					args,
-					opts,
-					function (err) {
-						if (err) {
-							fatal(err);
-						}
-						next();
+			// Generate 'AssetCryptImpl.java' from template.
+			const assetCryptDest = path.join(this.buildGenAppIdDir, 'AssetCryptImpl.java');
+			this.unmarkBuildDirFile(assetCryptDest);
+			await fs.writeFile(
+				assetCryptDest,
+				ejs.render(
+					(await fs.readFile(path.join(this.templatesDir, 'AssetCryptImpl.java'))).toString(),
+					{
+						appid: this.appid,
+						assets: jsFilesToEncrypt,
+						salt: cloak.salt
 					}
-				);
-			}.bind(this)
-		);
+				)
+			);
+
+			next();
+		} catch (e) {
+			this.logger.error('Could not encrypt assets!');
+			this.logger.error(e);
+			process.exit(1);
+		}
 	});
 };
 
@@ -4105,7 +4071,11 @@ AndroidBuilder.prototype.compileJavaClasses = function compileJavaClasses(next) 
 		classpath[path.join(this.platformPath, 'kroll-apt.jar')] = 1;
 	}
 
-	classpath[path.join(this.platformPath, 'lib', 'titanium-verify.jar')] = 1;
+	classpath[this.titaniumVerifyLibrary] = 1;
+
+	if (this.encryptJS) {
+		classpath[this.titaniumCloakLibrary] = 1;
+	}
 
 	// find all java files and write them to the temp file
 	const javaFiles = [],
@@ -4211,7 +4181,8 @@ AndroidBuilder.prototype.runDexer = function runDexer(next) {
 		}),
 		injarsCore = [
 			this.buildBinClassesDir,
-			path.join(this.platformPath, 'lib', 'titanium-verify.jar')
+			this.titaniumVerifyLibrary,
+			this.titaniumCloakLibrary
 		].concat(Object.keys(this.jarLibraries)),
 		injarsAll = injarsCore.slice().concat(Object.keys(this.moduleJars)),
 		shrinkedAndroid = path.join(path.dirname(this.androidInfo.sdk.dx), 'shrinkedAndroid.jar'),

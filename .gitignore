@@ -43,3 +43,4 @@ junit.*.xml
 
 .vscode/
 /android/runtime/v8/src/native/V8Snapshots.h
+/android/templates/build/AssetCryptImpl.java

@@ -96,7 +96,7 @@ public abstract class TiLaunchActivity extends TiBaseActivity
 	{
 		try {
 			String fullUrl = resolveUrl(this.url);
-			KrollRuntime.getInstance().runModule(KrollAssetHelper.readAsset(fullUrl), fullUrl, activityProxy);
+			KrollRuntime.getInstance().runModuleBytes(KrollAssetHelper.readAssetBytes(fullUrl), fullUrl, activityProxy);
 		} finally {
 			Log.d(TAG, "Signal JS loaded", Log.DEBUG_MODE);
 		}
