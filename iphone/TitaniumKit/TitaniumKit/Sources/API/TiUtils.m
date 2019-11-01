@@ -1495,7 +1495,11 @@ If the new path starts with / and the base url is app://..., we have to massage 
     NSRange range = [urlstring rangeOfString:resourceurl];
     NSString *appurlstr = urlstring;
     if (range.location != NSNotFound) {
-      appurlstr = [urlstring substringFromIndex:range.location + range.length + 1];
+      int index = range.location + range.length + 1;
+      if ([urlstring length] <= index) {
+        return nil;
+      }
+      appurlstr = [urlstring substringFromIndex:index];
     }
     if ([appurlstr hasPrefix:@"/"]) {
 #ifndef __clang_analyzer__
@@ -1525,6 +1529,7 @@ If the new path starts with / and the base url is app://..., we have to massage 
         return [NSData dataWithContentsOfFile:filepath];
       }
     }
+
 #endif
     static id AppRouter;
     if (AppRouter == nil) {
