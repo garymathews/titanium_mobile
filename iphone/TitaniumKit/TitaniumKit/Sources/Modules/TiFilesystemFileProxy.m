@@ -21,6 +21,7 @@
 {
   if (self = [super init]) {
     path = [path_ retain];
+    decryptedData = [TiUtils loadAppResource:[[NSURL fileURLWithPath:path] retain]];
   }
   return self;
 }
@@ -51,6 +52,9 @@
   NSError *error = nil;
   NSDictionary *resultDict = [[NSFileManager defaultManager] attributesOfItemAtPath:path error:&error];
   if (error != nil) {
+    if (decryptedData != nil) {
+      return NUMBOOL(YES);
+    }
     [self throwException:TiExceptionOSError subreason:[error localizedDescription] location:CODELOCATION];
   }
   return [resultDict objectForKey:NSFileImmutable];
@@ -73,6 +77,9 @@
   NSError *error = nil;
   NSDictionary *resultDict = [[NSFileManager defaultManager] attributesOfItemAtPath:path error:&error];
   if (error != nil) {
+    if (decryptedData != nil) {
+      return [NSDate dateWithTimeIntervalSince1970:0];
+    }
     [self throwException:TiExceptionOSError subreason:[error localizedDescription] location:CODELOCATION];
   }
   // Have to do this one up special because of 3.x bug where NSFileCreationDate is sometimes undefined
@@ -100,6 +107,9 @@
   NSError *error = nil;
   NSDictionary *resultDict = [[NSFileManager defaultManager] attributesOfItemAtPath:path error:&error];
   if (error != nil) {
+    if (decryptedData != nil) {
+      return [NSDate dateWithTimeIntervalSince1970:0];
+    }
     [self throwException:TiExceptionOSError subreason:[error localizedDescription] location:CODELOCATION];
   }
   return [resultDict objectForKey:NSFileModificationDate];
@@ -110,6 +120,9 @@
   NSError *error = nil;
   NSDictionary *resultDict = [[NSFileManager defaultManager] attributesOfItemAtPath:path error:&error];
   if (error != nil) {
+    if (decryptedData != nil) {
+      return NUMBOOL(NO);
+    }
     [self throwException:TiExceptionOSError subreason:[error localizedDescription] location:CODELOCATION];
   }
   NSString *fileType = [resultDict objectForKey:NSFileType];
@@ -142,6 +155,9 @@ FILENOOP(setHidden
   NSError *error = nil;
   NSArray *resultArray = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:path error:&error];
   if (error != nil) {
+    if (decryptedData != nil) {
+      return [[NSArray init] autorelease];
+    }
     NSLog(@"[ERROR] Could not receive directory listing: %@", error.localizedDescription);
   }
   return resultArray;
@@ -199,12 +215,18 @@ FILENOOP(setHidden
 
 - (NSNumber *)isFile:(id)unused
 {
+  if (decryptedData != nil) {
+    return NUMBOOL(YES);
+  }
   BOOL isDirectory;
   return NUMBOOL([[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:&isDirectory] && !isDirectory);
 }
 
 - (NSNumber *)isDirectory:(id)unused
 {
+  if (decryptedData != nil) {
+    return NUMBOOL(NO);
+  }
   BOOL isDirectory;
   return NUMBOOL([[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:&isDirectory] && isDirectory);
 }
@@ -225,6 +247,7 @@ FILENOOP(setHidden
 - (NSNumber *)copy:(id)args
 {
   ENSURE_TYPE(args, NSArray);
+  BOOL result = YES;
   NSError *error = nil;
   NSString *dest = [self _grabFirstArgumentAsFileName_:args];
 
@@ -233,7 +256,12 @@ FILENOOP(setHidden
     dest = [subpath stringByAppendingPathComponent:dest];
   }
 
-  BOOL result = [[NSFileManager defaultManager] copyItemAtPath:path toPath:dest error:&error];
+  if (decryptedData != nil) {
+    [decryptedData writeToFile:dest options:NSDataWritingFileProtectionComplete | NSDataWritingAtomic error:&error];
+  } else {
+    result = [[NSFileManager defaultManager] copyItemAtPath:path toPath:dest error:&error];
+  }
+
   if (error != nil) {
     NSLog(@"[ERROR] Could not copy: %@", error.localizedDescription);
     return NUMBOOL(NO);
@@ -331,6 +359,10 @@ FILENOOP(setHidden
     dest = [subpath stringByAppendingPathComponent:dest];
   }
 
+  if (decryptedData != nil) {
+    return NUMBOOL(NO);
+  }
+
   NSError *error = nil;
   BOOL result = [[NSFileManager defaultManager] moveItemAtPath:path toPath:dest error:&error];
   if (error != nil) {
@@ -360,8 +392,14 @@ FILENOOP(setHidden
 - (TiBlob *)read:(id)args
 {
   BOOL exists = [[NSFileManager defaultManager] fileExistsAtPath:path];
-  if (!exists)
+  if (!exists) {
+
+    // Encrypted javascript asset.
+    if (decryptedData != nil) {
+      return [[[TiBlob alloc] initWithData:decryptedData mimetype:@"application/javascript"] autorelease];
+    }
     return nil;
+  }
   return [[[TiBlob alloc] initWithFile:path] autorelease];
 }
 

@@ -39,7 +39,18 @@
         NSFileManager *fileManager = [NSFileManager defaultManager];
         if (![fileManager fileExistsAtPath:filePath]) {
           if (mode != TI_WRITE) {
-            [NSException raise:NSInternalInconsistencyException format:@"File does not exist at path %@", filePath, nil];
+            // Trying to read encrypted asset.
+            // Create NSFileHandle for encrypted asset.
+            NSData *data = [TiUtils loadAppResource:[[NSURL fileURLWithPath:filePath] retain]];
+            if (data != nil) {
+              NSError *error = nil;
+              [data writeToFile:filePath options:NSDataWritingFileProtectionComplete | NSDataWritingAtomic error:&error];
+              if (error != nil) {
+                [NSException raise:NSInternalInconsistencyException format:@"%@", error, nil];
+              }
+            } else {
+              [NSException raise:NSInternalInconsistencyException format:@"File does not exist at path %@", filePath, nil];
+            }
           }
           BOOL created = [fileManager createFileAtPath:filePath contents:[NSData data] attributes:nil];
           if (!created) {

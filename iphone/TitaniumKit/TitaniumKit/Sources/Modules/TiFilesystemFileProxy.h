@@ -10,6 +10,8 @@
 @class TiFilesystemFileStreamProxy;
 
 @interface TiFilesystemFileProxy : TiFile {
+  @protected
+  NSData *decryptedData;
 }
 
 - (id)initWithFile:(NSString *)path;

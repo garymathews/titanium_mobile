@@ -99,7 +99,7 @@ GETTER_IMPL(NSUInteger, height, Height);
     NSError *error = nil;
     NSDictionary *resultDict = [fm attributesOfItemAtPath:path error:&error];
     id result = [resultDict objectForKey:NSFileSize];
-    if (error != NULL) {
+    if (error != nil) {
       return 0;
     }
     return [result intValue];
@@ -175,6 +175,16 @@ GETTER_IMPL(NSUInteger, size, Size);
     type = TiBlobTypeFile;
     path = [path_ retain];
     mimetype = [[Mimetypes mimeTypeForExtension:path] copy];
+
+    // File is encrypted asset.
+    if (![[NSFileManager defaultManager] fileExistsAtPath:path]) {
+      NSData *decryptedData = [TiUtils loadAppResource:[[NSURL fileURLWithPath:path] retain]];
+      if (decryptedData != nil) {
+        data = decryptedData;
+        type = TiBlobTypeData;
+        mimetype = @"application/javascript";
+      }
+    }
   }
   return self;
 }
