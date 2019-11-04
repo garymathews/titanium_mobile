@@ -11,7 +11,7 @@
 
 @interface TiFilesystemFileProxy : TiFile {
   @protected
-  NSData *decryptedData;
+  NSData *asset;
 }
 
 - (id)initWithFile:(NSString *)path;

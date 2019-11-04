@@ -180,14 +180,6 @@ GETTER_IMPL(NSString *, lineEnding, LineEnding);
   NSArray *args = [JSContext currentArguments];
   NSString *newpath = [self pathFromComponents:args];
 
-  if ([newpath hasPrefix:[self resourcesDirectory]] && ([newpath hasSuffix:@".html"] || [newpath hasSuffix:@".js"] || [newpath hasSuffix:@".css"] || [newpath hasSuffix:@".json"])) {
-    NSURL *url = [NSURL fileURLWithPath:newpath];
-    NSData *data = [TiUtils loadAppResource:url];
-    if (data != nil) {
-      return [self NativeToJSValue:[[[TiFilesystemBlobProxy alloc] initWithURL:url data:data] autorelease]];
-    }
-  }
-
   return [self NativeToJSValue:[[[TiFilesystemFileProxy alloc] initWithFile:newpath] autorelease]];
 }
 

@@ -90,6 +90,7 @@ GETTER_IMPL(NSUInteger, height, Height);
   if (image != nil) {
     return image.size.width * image.size.height;
   }
+  NSLog(@"[INFO] TiBlob.size type: %d", type);
   switch (type) {
   case TiBlobTypeData: {
     return [data length];
@@ -176,11 +177,9 @@ GETTER_IMPL(NSUInteger, size, Size);
     path = [path_ retain];
     mimetype = [[Mimetypes mimeTypeForExtension:path] copy];
 
-    // File is encrypted asset.
     if (![[NSFileManager defaultManager] fileExistsAtPath:path]) {
-      NSData *decryptedData = [TiUtils loadAppResource:[[NSURL fileURLWithPath:path] retain]];
-      if (decryptedData != nil) {
-        data = decryptedData;
+      data = [[TiUtils loadAppResource:[NSURL fileURLWithPath:path]] retain];
+      if (data != nil) {
         type = TiBlobTypeData;
         mimetype = @"application/javascript";
       }

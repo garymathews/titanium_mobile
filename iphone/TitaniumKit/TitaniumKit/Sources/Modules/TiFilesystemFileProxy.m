@@ -21,7 +21,7 @@
 {
   if (self = [super init]) {
     path = [path_ retain];
-    decryptedData = [TiUtils loadAppResource:[[NSURL fileURLWithPath:path] retain]];
+    asset = [[TiUtils loadAppResource:[NSURL fileURLWithPath:path]] retain];
   }
   return self;
 }
@@ -29,6 +29,7 @@
 - (void)dealloc
 {
   RELEASE_TO_NIL(path);
+  RELEASE_TO_NIL(asset);
   [super dealloc];
 }
 
@@ -42,9 +43,17 @@
   return [[NSURL fileURLWithPath:path] absoluteString];
 }
 
+- (unsigned long long)size
+{
+  if (asset != nil) {
+    return [asset length];
+  }
+  return [super size];
+}
+
 - (NSNumber *)exists:(id)unused
 {
-  return NUMBOOL([[NSFileManager defaultManager] fileExistsAtPath:path]);
+  return NUMBOOL(asset != nil || [[NSFileManager defaultManager] fileExistsAtPath:path]);
 }
 
 - (NSNumber *)readonly
@@ -52,7 +61,7 @@
   NSError *error = nil;
   NSDictionary *resultDict = [[NSFileManager defaultManager] attributesOfItemAtPath:path error:&error];
   if (error != nil) {
-    if (decryptedData != nil) {
+    if (asset != nil) {
       return NUMBOOL(YES);
     }
     [self throwException:TiExceptionOSError subreason:[error localizedDescription] location:CODELOCATION];
@@ -77,7 +86,7 @@
   NSError *error = nil;
   NSDictionary *resultDict = [[NSFileManager defaultManager] attributesOfItemAtPath:path error:&error];
   if (error != nil) {
-    if (decryptedData != nil) {
+    if (asset != nil) {
       return [NSDate dateWithTimeIntervalSince1970:0];
     }
     [self throwException:TiExceptionOSError subreason:[error localizedDescription] location:CODELOCATION];
@@ -107,7 +116,7 @@
   NSError *error = nil;
   NSDictionary *resultDict = [[NSFileManager defaultManager] attributesOfItemAtPath:path error:&error];
   if (error != nil) {
-    if (decryptedData != nil) {
+    if (asset != nil) {
       return [NSDate dateWithTimeIntervalSince1970:0];
     }
     [self throwException:TiExceptionOSError subreason:[error localizedDescription] location:CODELOCATION];
@@ -120,7 +129,7 @@
   NSError *error = nil;
   NSDictionary *resultDict = [[NSFileManager defaultManager] attributesOfItemAtPath:path error:&error];
   if (error != nil) {
-    if (decryptedData != nil) {
+    if (asset != nil) {
       return NUMBOOL(NO);
     }
     [self throwException:TiExceptionOSError subreason:[error localizedDescription] location:CODELOCATION];
@@ -155,8 +164,8 @@ FILENOOP(setHidden
   NSError *error = nil;
   NSArray *resultArray = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:path error:&error];
   if (error != nil) {
-    if (decryptedData != nil) {
-      return [[NSArray init] autorelease];
+    if (asset != nil) {
+      return nil;
     }
     NSLog(@"[ERROR] Could not receive directory listing: %@", error.localizedDescription);
   }
@@ -215,7 +224,7 @@ FILENOOP(setHidden
 
 - (NSNumber *)isFile:(id)unused
 {
-  if (decryptedData != nil) {
+  if (asset != nil) {
     return NUMBOOL(YES);
   }
   BOOL isDirectory;
@@ -224,7 +233,7 @@ FILENOOP(setHidden
 
 - (NSNumber *)isDirectory:(id)unused
 {
-  if (decryptedData != nil) {
+  if (asset != nil) {
     return NUMBOOL(NO);
   }
   BOOL isDirectory;
@@ -256,8 +265,8 @@ FILENOOP(setHidden
     dest = [subpath stringByAppendingPathComponent:dest];
   }
 
-  if (decryptedData != nil) {
-    [decryptedData writeToFile:dest options:NSDataWritingFileProtectionComplete | NSDataWritingAtomic error:&error];
+  if (asset != nil) {
+    [asset writeToFile:dest options:NSDataWritingFileProtectionComplete | NSDataWritingAtomic error:&error];
   } else {
     result = [[NSFileManager defaultManager] copyItemAtPath:path toPath:dest error:&error];
   }
@@ -359,7 +368,7 @@ FILENOOP(setHidden
     dest = [subpath stringByAppendingPathComponent:dest];
   }
 
-  if (decryptedData != nil) {
+  if (asset != nil) {
     return NUMBOOL(NO);
   }
 
@@ -395,8 +404,8 @@ FILENOOP(setHidden
   if (!exists) {
 
     // Encrypted javascript asset.
-    if (decryptedData != nil) {
-      return [[[TiBlob alloc] initWithData:decryptedData mimetype:@"application/javascript"] autorelease];
+    if (asset != nil) {
+      return [[[TiBlob alloc] initWithData:asset mimetype:@"application/javascript"] autorelease];
     }
     return nil;
   }
