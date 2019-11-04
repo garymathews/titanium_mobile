@@ -403,7 +403,7 @@ FILENOOP(setHidden
   BOOL exists = [[NSFileManager defaultManager] fileExistsAtPath:path];
   if (!exists) {
 
-    // Encrypted javascript asset.
+    // Javascript asset.
     if (asset != nil) {
       return [[[TiBlob alloc] initWithData:asset mimetype:@"application/javascript"] autorelease];
     }

@@ -90,7 +90,6 @@ GETTER_IMPL(NSUInteger, height, Height);
   if (image != nil) {
     return image.size.width * image.size.height;
   }
-  NSLog(@"[INFO] TiBlob.size type: %d", type);
   switch (type) {
   case TiBlobTypeData: {
     return [data length];
