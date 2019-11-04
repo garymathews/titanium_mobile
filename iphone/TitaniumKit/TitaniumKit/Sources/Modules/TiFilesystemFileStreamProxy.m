@@ -39,12 +39,12 @@
         NSFileManager *fileManager = [NSFileManager defaultManager];
         if (![fileManager fileExistsAtPath:filePath]) {
           if (mode != TI_WRITE) {
-            // Trying to read encrypted asset.
-            // Create NSFileHandle for encrypted asset.
+
+            // Attempt to read javascript asset.
             NSData *data = [TiUtils loadAppResource:[[NSURL fileURLWithPath:filePath] retain]];
             if (data != nil) {
               NSError *error = nil;
-              [data writeToFile:filePath options:NSDataWritingFileProtectionComplete | NSDataWritingAtomic error:&error];
+              [data writeToFile:filePath options:NSDataWritingAtomic error:&error];
               if (error != nil) {
                 [NSException raise:NSInternalInconsistencyException format:@"%@", error, nil];
               }
