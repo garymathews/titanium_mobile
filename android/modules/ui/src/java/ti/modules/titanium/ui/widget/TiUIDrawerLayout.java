@@ -121,7 +121,7 @@ public class TiUIDrawerLayout extends TiUIView
 			} else if (drawerView.equals(rightFrame)) {
 				options.put("drawer", "right");
 			}
-			proxy.fireEvent(TiC.EVENT_CLOSE, options);
+			proxy.fireEvent(TiC.EVENT_CLOSE, options, false);
 		}
 	}
 
@@ -134,7 +134,7 @@ public class TiUIDrawerLayout extends TiUIView
 			} else if (drawerView.equals(rightFrame)) {
 				options.put("drawer", "right");
 			}
-			proxy.fireEvent(TiC.EVENT_OPEN, options);
+			proxy.fireEvent(TiC.EVENT_OPEN, options, false);
 		}
 	}
 
@@ -146,7 +146,7 @@ public class TiUIDrawerLayout extends TiUIView
 			options.put("idle", (state == DrawerLayout.STATE_IDLE));
 			options.put("dragging", (state == DrawerLayout.STATE_DRAGGING));
 			options.put("settling", (state == DrawerLayout.STATE_SETTLING));
-			proxy.fireEvent(TiC.EVENT_CHANGE, options);
+			proxy.fireEvent(TiC.EVENT_CHANGE, options, false);
 		}
 	}
 
@@ -160,7 +160,7 @@ public class TiUIDrawerLayout extends TiUIView
 			} else if (drawerView.equals(rightFrame)) {
 				options.put("drawer", "right");
 			}
-			proxy.fireEvent(TiC.EVENT_SLIDE, options);
+			proxy.fireEvent(TiC.EVENT_SLIDE, options, false);
 		}
 	}
 
