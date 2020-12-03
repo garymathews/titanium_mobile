@@ -371,4 +371,20 @@ public class TiUITabbedBar extends TiUIView implements MenuItem.OnMenuItemClickL
 		}
 		return 0;
 	}
+
+	@Override
+	public void release()
+	{
+		if (this.tabLayout != null) {
+			this.tabLayout.addOnTabSelectedListener(null);
+		}
+		if (this.bottomNavigationMenuItems != null) {
+			for (final MenuItem item : this.bottomNavigationMenuItems) {
+				item.setOnMenuItemClickListener(null);
+			}
+			this.bottomNavigationMenuItems.clear();
+		}
+
+		super.release();
+	}
 }
