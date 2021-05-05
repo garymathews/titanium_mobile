@@ -7,6 +7,7 @@
 package ti.modules.titanium.ui.widget.tableview;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.appcelerator.kroll.KrollDict;
@@ -55,7 +56,7 @@ public class TiTableView extends TiSwipeRefreshLayout implements OnSearchChangeL
 	private final TableViewProxy proxy;
 	private final TiNestedRecyclerView recyclerView;
 	private final List<TableViewRowProxy> rows = new ArrayList<>(CACHE_SIZE);
-	private final SelectionTracker tracker;
+	private SelectionTracker tracker;
 
 	private boolean isScrolling = false;
 	private int scrollOffsetX = 0;
@@ -153,8 +154,7 @@ public class TiTableView extends TiSwipeRefreshLayout implements OnSearchChangeL
 			}
 		});
 
-		// TODO: Implement native item selection.
-		this.tracker = new SelectionTracker.Builder("table_view_selection",
+		final SelectionTracker.Builder trackerBuilder = new SelectionTracker.Builder("table_view_selection",
 			this.recyclerView,
 			new ItemKeyProvider(1)
 			{
@@ -208,23 +208,52 @@ public class TiTableView extends TiSwipeRefreshLayout implements OnSearchChangeL
 				}
 			},
 			StorageStrategy.createLongStorage()
-		)
-			.withSelectionPredicate(SelectionPredicates.<Long>createSelectSingleAnything())
-			.build();
-		this.tracker.addObserver(new SelectionTracker.SelectionObserver() {
+		);
+		if (proxy.getProperties().optBoolean(TiC.PROPERTY_ALLOWS_SELECTION, true)) {
+			if (proxy.getProperties().optBoolean(TiC.PROPERTY_ALLOWS_MULTIPLE_SELECTION_INTERACTION, false)) {
+				this.tracker = trackerBuilder.withSelectionPredicate(SelectionPredicates.createSelectAnything())
+					.build();
+			} else {
+				this.tracker = trackerBuilder.withSelectionPredicate(SelectionPredicates.createSelectSingleAnything())
+					.build();
+			}
+		}
+		this.tracker.addObserver(new SelectionTracker.SelectionObserver()
+		{
+			int selectionCount = 0;
 
 			@Override
 			public void onSelectionChanged()
 			{
 				super.onSelectionChanged();
 
-				/*if (tracker.hasSelection()) {
+				if (tracker.hasSelection() && selectionCount != tracker.getSelection().size()) {
+					final List<KrollDict> selectedRows = new ArrayList<>(selectionCount);
 					final Iterator<TableViewRowProxy> i = tracker.getSelection().iterator();
+
 					while (i.hasNext()) {
-						final TableViewRowProxy proxy = i.next();
-						// Log.d(TAG, "SELECTED: " + proxy.getProperties().getString(TiC.PROPERTY_TITLE));
+						final TableViewRowProxy row = i.next();
+						final KrollDict selectedRow = new KrollDict();
+
+						selectedRow.put(TiC.PROPERTY_INDEX, row.index);
+						selectedRow.put(TiC.EVENT_PROPERTY_ROW, row);
+						selectedRow.put(TiC.PROPERTY_ROW_DATA, row.getProperties());
+						if (getParent() instanceof TableViewSectionProxy) {
+							selectedRow.put(TiC.PROPERTY_SECTION, getParent());
+						}
+
+						selectedRows.add(selectedRow);
 					}
-				}*/
+
+					if (selectedRows.size() > 0) {
+						final KrollDict data = new KrollDict();
+
+						data.put(TiC.PROPERTY_SELECTED_ROWS, selectedRows.toArray(new KrollDict[0]));
+						data.put(TiC.PROPERTY_STARTING_ROW, selectedRows.get(0));
+						proxy.fireEvent(TiC.EVENT_ROWS_SELECTED, data);
+					}
+				}
+				selectionCount = tracker.getSelection().size();
 			}
 		});
 		this.adapter.setTracker(this.tracker);

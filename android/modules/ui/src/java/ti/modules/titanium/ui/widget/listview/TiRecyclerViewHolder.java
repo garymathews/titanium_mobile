@@ -139,19 +139,18 @@ public abstract class TiRecyclerViewHolder extends RecyclerView.ViewHolder
 	 */
 	protected Drawable generateSelectedDrawable(KrollDict properties, Drawable drawable)
 	{
-		if (properties.containsKeyAndNotNull(TiC.PROPERTY_SELECTED_BACKGROUND_COLOR)
-			|| properties.containsKeyAndNotNull(TiC.PROPERTY_SELECTED_BACKGROUND_IMAGE)) {
+		if (properties.containsKeyAndNotNull(TiC.PROPERTY_BACKGROUND_SELECTED_COLOR)
+			|| properties.containsKeyAndNotNull(TiC.PROPERTY_BACKGROUND_SELECTED_IMAGE)) {
 
 			final StateListDrawable stateDrawable = new StateListDrawable();
 			final Drawable selectedBackgroundDrawable = TiUIHelper.buildBackgroundDrawable(
-				properties.getString(TiC.PROPERTY_SELECTED_BACKGROUND_COLOR),
-				properties.getString(TiC.PROPERTY_SELECTED_BACKGROUND_IMAGE),
+				properties.getString(TiC.PROPERTY_BACKGROUND_SELECTED_COLOR),
+				properties.getString(TiC.PROPERTY_BACKGROUND_SELECTED_IMAGE),
 				TiConvert.toBoolean(properties.get(TiC.PROPERTY_BACKGROUND_REPEAT), false),
 				null
 			);
 
-			stateDrawable.addState(
-				new int[] { android.R.attr.state_activated }, selectedBackgroundDrawable);
+			stateDrawable.addState(new int[] { android.R.attr.state_activated }, selectedBackgroundDrawable);
 			stateDrawable.addState(new int[] {}, drawable);
 
 			return stateDrawable;

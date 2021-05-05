@@ -626,6 +626,23 @@ public class ListItemProxy extends TiViewProxy
 			setProperty(TiC.PROPERTY_BACKGROUND_SELECTED_IMAGE, value);
 		}
 
+		// Set selected color from selection style.
+		if (!hasPropertyAndNotNull(TiC.PROPERTY_BACKGROUND_SELECTED_COLOR)
+			&& name.equals(TiC.PROPERTY_SELECTION_STYLE)
+			&& value instanceof Integer) {
+			String selectionColor = null;
+
+			switch ((Integer) value) {
+				case UIModule.SELECTION_STYLE_BLUE:
+					selectionColor = "#3399BEFB";
+					break;
+				case UIModule.SELECTION_STYLE_GRAY:
+					selectionColor = "#33808080";
+					break;
+			}
+			setProperty(TiC.PROPERTY_BACKGROUND_SELECTED_COLOR, selectionColor);
+		}
+
 		if (name.equals(TiC.PROPERTY_CAN_MOVE)) {
 			invalidate();
 		}

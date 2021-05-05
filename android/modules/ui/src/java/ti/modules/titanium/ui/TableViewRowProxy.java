@@ -394,6 +394,24 @@ public class TableViewRowProxy extends TiViewProxy
 			footerDeprecationLog();
 		}
 
+		// Set selected color from selection style.
+		if (!hasPropertyAndNotNull(TiC.PROPERTY_BACKGROUND_SELECTED_COLOR)
+			&& name.equals(TiC.PROPERTY_SELECTION_STYLE)
+			&& value instanceof Integer) {
+			String selectionColor = null;
+
+			switch ((Integer) value) {
+				case UIModule.SELECTION_STYLE_BLUE:
+					selectionColor = "#3399BEFB";
+					break;
+				case UIModule.SELECTION_STYLE_GRAY:
+					selectionColor = "#33808080";
+					break;
+			}
+			setProperty(TiC.PROPERTY_BACKGROUND_SELECTED_COLOR, selectionColor);
+			invalidate();
+		}
+
 		if (name.equals(TiC.PROPERTY_LEFT_IMAGE)
 			|| name.equals(TiC.PROPERTY_RIGHT_IMAGE)
 			|| name.equals(TiC.PROPERTY_HAS_CHECK)

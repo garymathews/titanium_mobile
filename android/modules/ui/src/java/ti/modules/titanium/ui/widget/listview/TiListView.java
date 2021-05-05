@@ -7,6 +7,7 @@
 package ti.modules.titanium.ui.widget.listview;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.appcelerator.kroll.KrollDict;
@@ -50,7 +51,7 @@ public class TiListView extends TiSwipeRefreshLayout implements OnSearchChangeLi
 	private final List<ListItemProxy> items = new ArrayList<>(CACHE_SIZE);
 	private final ListViewProxy proxy;
 	private final TiNestedRecyclerView recyclerView;
-	private final SelectionTracker tracker;
+	private SelectionTracker tracker = null;
 
 	private boolean isScrolling = false;
 	private int lastScrollDeltaY;
@@ -147,8 +148,7 @@ public class TiListView extends TiSwipeRefreshLayout implements OnSearchChangeLi
 			}
 		});
 
-		// TODO: Implement native item selection.
-		this.tracker = new SelectionTracker.Builder("list_view_selection",
+		final SelectionTracker.Builder trackerBuilder = new SelectionTracker.Builder("list_view_selection",
 			this.recyclerView,
 			new ItemKeyProvider(1)
 			{
@@ -202,25 +202,53 @@ public class TiListView extends TiSwipeRefreshLayout implements OnSearchChangeLi
 				}
 			},
 			StorageStrategy.createLongStorage()
-		)
-			.withSelectionPredicate(SelectionPredicates.<Long>createSelectSingleAnything())
-			.build();
+		);
+		if (proxy.getProperties().optBoolean(TiC.PROPERTY_ALLOWS_SELECTION, true)) {
+			if (proxy.getProperties().optBoolean(TiC.PROPERTY_ALLOWS_MULTIPLE_SELECTION_INTERACTION, false)) {
+				this.tracker = trackerBuilder.withSelectionPredicate(SelectionPredicates.createSelectAnything())
+					.build();
+			} else {
+				this.tracker = trackerBuilder.withSelectionPredicate(SelectionPredicates.createSelectSingleAnything())
+					.build();
+			}
+		}
 		this.tracker.addObserver(new SelectionTracker.SelectionObserver()
 		{
+			int selectionCount = 0;
 
 			@Override
 			public void onSelectionChanged()
 			{
 				super.onSelectionChanged();
 
-				/*if (tracker.hasSelection()) {
+				if (tracker.hasSelection() && selectionCount != tracker.getSelection().size()) {
+					final List<KrollDict> selectedItems = new ArrayList<>(selectionCount);
 					final Iterator<ListItemProxy> i = tracker.getSelection().iterator();
-					while (i.hasNext()) {
-						final ListItemProxy proxy = i.next();
 
-						Log.d(TAG, "SELECTED: " + proxy.getProperties().getString(TiC.PROPERTY_TITLE));
+					while (i.hasNext()) {
+						final ListItemProxy item = i.next();
+						final KrollDict selectedItem = new KrollDict();
+						final ListSectionProxy section =
+							item.getParent() != null ? (ListSectionProxy) item.getParent() : null;
+
+						if (section != null) {
+							selectedItem.put(TiC.PROPERTY_ITEM_INDEX, item.getIndexInSection());
+							selectedItem.put(TiC.PROPERTY_SECTION, section);
+							selectedItem.put(TiC.PROPERTY_SECTION_INDEX, proxy.getIndexOfSection(section));
+
+							selectedItems.add(selectedItem);
+						}
 					}
-				}*/
+
+					if (selectedItems.size() > 0) {
+						final KrollDict data = new KrollDict();
+
+						data.put(TiC.PROPERTY_SELECTED_ITEMS, selectedItems.toArray(new KrollDict[0]));
+						data.put(TiC.PROPERTY_STARTING_ITEM, selectedItems.get(0));
+						proxy.fireEvent(TiC.EVENT_ITEMS_SELECTED, data);
+					}
+				}
+				selectionCount = tracker.getSelection().size();
 			}
 		});
 		this.adapter.setTracker(this.tracker);
