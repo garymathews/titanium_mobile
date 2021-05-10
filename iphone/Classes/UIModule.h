@@ -157,6 +157,10 @@
 @property (nonatomic, readonly) NSNumber *BUTTON_STYLE_OPTION_NEGATIVE;
 @property (nonatomic, readonly) NSNumber *BUTTON_STYLE_OPTION_NEUTRAL;
 
+@property (nonatomic, readonly) NSNumber *SELECTION_STYLE_NONE;
+@property (nonatomic, readonly) NSNumber *SELECTION_STYLE_BLUE;
+@property (nonatomic, readonly) NSNumber *SELECTION_STYLE_GRAY;
+
 @property (nonatomic, readonly) NSNumber *SWITCH_STYLE_SLIDER;
 @property (nonatomic, readonly) NSNumber *SWITCH_STYLE_CHECKBOX;
 @property (nonatomic, readonly) NSNumber *SWITCH_STYLE_TOGGLE_BUTTON;
