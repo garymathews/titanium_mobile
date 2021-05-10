@@ -270,8 +270,8 @@ events:
       - name: startingItem
         summary: First item selected when user started interaction.
         type: SelectedItem
-    platforms: [iphone, ipad, macos]
-    since: 8.2.0
+    platforms: [android, iphone, ipad, macos]
+    since: {android: "10.1.0", iphone: "8.2.0", ipad: "8.2.0", macos: "9.2.0"}
 
   - name: delete
     summary: Fired when a list row is deleted by the user.
@@ -644,7 +644,8 @@ properties:
         templates that are controls, such as a button, slider, etc.
     type: Boolean
     default: true
-    platforms: [iphone, ipad, macos]
+    platforms: [android, iphone, ipad, macos]
+    since: {android: "10.1.0", iphone: "8.2.0", ipad: "8.2.0", macos: "9.2.0"}
 
   - name: canScroll
     summary: Determines if the list view can scroll in response to user actions.
@@ -709,8 +710,8 @@ properties:
         Once user interaction stops the <Titanium.UI.ListView.itemsselected> event is fired.
     type: Boolean
     default: false
-    since: 8.2.0
-    platforms: [iphone, ipad, macos]
+    since: {android: "10.1.0", iphone: "8.2.0", ipad: "8.2.0", macos: "9.2.0"}
+    platforms: [android, iphone, ipad, macos]
 
   - name: lazyLoadingEnabled
     summary: Determines if the list view should use lazy loading to load remote images.
@@ -1827,8 +1828,8 @@ properties:
 ---
 name: SelectedItem
 summary: The arguments for the <Titanium.UI.ListView.itemsselected> event.
-since: 8.2.0
-platforms: [iphone, ipad, macos]
+since: {android: "10.1.0", iphone: "8.2.0", ipad: "8.2.0", macos: "9.2.0"}
+platforms: [android, iphone, ipad, macos]
 properties:
   - name: section
     summary: List section if the item is contained in a list section.

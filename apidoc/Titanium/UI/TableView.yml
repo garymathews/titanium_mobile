@@ -175,8 +175,8 @@ events:
     summary: |
         Fired when user stops two-pan gesture interaction for selecting multiple rows. 
         It is used in conjunction with <Titanium.UI.TableView.allowsMultipleSelectionInteraction>.
-    platforms: [iphone, ipad, macos]
-    since: 8.2.0
+    platforms: [android, iphone, ipad, macos]
+    since: {android: "10.1.0", iphone: "8.2.0", ipad: "8.2.0", macos: "9.2.0"}
     properties:
       - name: selectedRows
         summary: List of rows selected by user.
@@ -1064,7 +1064,8 @@ properties:
     description: Set to `false` to prevent rows from being selected.
     type: Boolean
     default: true
-    platforms: [iphone, ipad, macos]
+    platforms: [android, iphone, ipad, macos]
+    since: {android: "10.1.0", iphone: "8.2.0", ipad: "8.2.0", macos: "9.2.0"}
 
   - name: allowsSelectionDuringEditing
     summary: Determines whether this table's rows can be selected while editing the table.
@@ -1245,8 +1246,8 @@ properties:
         Once user interaction stops the <Titanium.UI.TableView.rowsselected> event is fired.
     type: Boolean
     default: false
-    since: 8.2.0
-    platforms: [iphone, ipad, macos]
+    since: {android: "10.1.0", iphone: "8.2.0", ipad: "8.2.0", macos: "9.2.0"}
+    platforms: [android, iphone, ipad, macos]
 
   - name: footerView
     summary: Table view footer as a view that will be rendered instead of a label.
@@ -1812,8 +1813,8 @@ properties:
 ---
 name: SelectedRowObject
 summary: The arguments for the <Titanium.UI.TableView.rowsselected> event.
-since: 8.2.0
-platforms: [iphone, ipad, macos]    
+since: {android: "10.1.0", iphone: "8.2.0", ipad: "8.2.0", macos: "9.2.0"}
+platforms: [android, iphone, ipad, macos]    
 properties:
   - name: index
     summary: Row index.
