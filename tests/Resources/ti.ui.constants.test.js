@@ -212,8 +212,7 @@ describe('Titanium.UI', function () {
 			RETURNKEY_YAHOO: { type: 'Number', platforms: ALL },
 
 			SELECTION_STYLE_NONE: { type: 'Number', platforms: NOT_MOBILEWEB },
-			SELECTION_STYLE_BLUE: { type: 'Number', platforms: NOT_MOBILEWEB },
-			SELECTION_STYLE_GRAY: { type: 'Number', platforms: NOT_MOBILEWEB },
+			SELECTION_STYLE_DEFAULT: { type: 'Number', platforms: NOT_MOBILEWEB },
 
 			TABLE_VIEW_SEPARATOR_STYLE_NONE: { type: 'Number', platforms: NOT_MOBILEWEB },
 			TABLE_VIEW_SEPARATOR_STYLE_SINGLE_LINE: { type: 'Number', platforms: NOT_MOBILEWEB },
