@@ -58,6 +58,7 @@ public class TableViewRowProxy extends TiViewProxy
 	private int filteredIndex = -1;
 	private TableViewHolder holder;
 	private boolean placeholder = false;
+	private boolean selected = false;
 
 	// FIXME: On iOS the same row can be added to a table multiple times.
 	//        Due to constraints, we need to create a new proxy and track changes.
@@ -276,6 +277,24 @@ public class TableViewRowProxy extends TiViewProxy
 			parent = parent.getParent();
 		}
 		return (TableViewProxy) parent;
+	}
+
+	/**
+	 * Determine if row is currently selected.
+	 *
+	 * @return Boolean of selection status.
+	 */
+	public boolean isSelected()
+	{
+		return selected;
+	}
+
+	/**
+	 * Set row selection status.
+	 */
+	public void setSelected(boolean selected)
+	{
+		this.selected = selected;
 	}
 
 	/**

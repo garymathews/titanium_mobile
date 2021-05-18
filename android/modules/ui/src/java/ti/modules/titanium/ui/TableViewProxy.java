@@ -50,6 +50,7 @@ import ti.modules.titanium.ui.widget.tableview.TiTableView;
 		TiC.PROPERTY_SEARCH,
 		TiC.PROPERTY_SEPARATOR_COLOR,
 		TiC.PROPERTY_SEPARATOR_STYLE,
+		TiC.PROPERTY_SHOW_SELECTION_CHECK,
 		TiC.PROPERTY_SHOW_VERTICAL_SCROLL_INDICATOR,
 		TiC.PROPERTY_TOUCH_FEEDBACK,
 		TiC.PROPERTY_TOUCH_FEEDBACK_COLOR
@@ -67,6 +68,7 @@ public class TableViewProxy extends RecyclerViewProxy
 
 		defaultValues.put(TiC.PROPERTY_OVER_SCROLL_MODE, 0);
 		defaultValues.put(TiC.PROPERTY_SCROLLABLE, true);
+		defaultValues.put(TiC.PROPERTY_SHOW_SELECTION_CHECK, true);
 		defaultValues.put(TiC.PROPERTY_TOUCH_FEEDBACK, true);
 	}
 
@@ -767,12 +769,22 @@ public class TableViewProxy extends RecyclerViewProxy
 	{
 		if (name.equals(TiC.PROPERTY_DATA) || name.equals(TiC.PROPERTY_SECTIONS)) {
 			setData((Object[]) value);
-		}
 
-		if (name.equals(TiC.PROPERTY_EDITING)
-			|| name.equals(TiC.PROPERTY_MOVING)) {
+		} else if (name.equals(TiC.PROPERTY_EDITING)) {
+			final TiViewProxy parent = getParent();
 
-			// Update table to display drag-handles.
+			if (parent != null) {
+
+				// Due to Android limitations, selection trackers cannot be removed.
+				// Re-create TableView with new selection tracker.
+				releaseViews();
+				parent.add(this);
+			}
+
+		} else if (name.equals(TiC.PROPERTY_MOVING)
+			|| name.equals(TiC.PROPERTY_SHOW_SELECTION_CHECK)) {
+
+			// Update and refresh table.
 			update();
 		}
 	}

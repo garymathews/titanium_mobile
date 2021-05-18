@@ -209,54 +209,59 @@ public class TiTableView extends TiSwipeRefreshLayout implements OnSearchChangeL
 			},
 			StorageStrategy.createLongStorage()
 		);
-		if (proxy.getProperties().optBoolean(TiC.PROPERTY_ALLOWS_SELECTION, true)) {
-			if (proxy.getProperties().optBoolean(TiC.PROPERTY_ALLOWS_MULTIPLE_SELECTION_INTERACTION, false)) {
+
+		if (proxy.getProperties().optBoolean(TiC.PROPERTY_EDITING, false)
+			&& proxy.getProperties().optBoolean(TiC.PROPERTY_ALLOWS_SELECTION_DURING_EDITING, false)) {
+			if (proxy.getProperties().optBoolean(TiC.PROPERTY_ALLOWS_MULTIPLE_SELECTION_DURING_EDITING, false)) {
 				this.tracker = trackerBuilder.withSelectionPredicate(SelectionPredicates.createSelectAnything())
 					.build();
 			} else {
 				this.tracker = trackerBuilder.withSelectionPredicate(SelectionPredicates.createSelectSingleAnything())
 					.build();
 			}
-		}
-		this.tracker.addObserver(new SelectionTracker.SelectionObserver()
-		{
-			int selectionCount = 0;
 
-			@Override
-			public void onSelectionChanged()
-			{
-				super.onSelectionChanged();
+			if (this.tracker != null) {
+				this.tracker.addObserver(new SelectionTracker.SelectionObserver()
+				{
+					int selectionCount = 0;
 
-				if (tracker.hasSelection() && selectionCount != tracker.getSelection().size()) {
-					final List<KrollDict> selectedRows = new ArrayList<>(selectionCount);
-					final Iterator<TableViewRowProxy> i = tracker.getSelection().iterator();
+					@Override
+					public void onSelectionChanged()
+					{
+						super.onSelectionChanged();
 
-					while (i.hasNext()) {
-						final TableViewRowProxy row = i.next();
-						final KrollDict selectedRow = new KrollDict();
+						if (tracker.hasSelection() && selectionCount != tracker.getSelection().size()) {
+							final List<KrollDict> selectedRows = new ArrayList<>(selectionCount);
+							final Iterator<TableViewRowProxy> i = tracker.getSelection().iterator();
 
-						selectedRow.put(TiC.PROPERTY_INDEX, row.index);
-						selectedRow.put(TiC.EVENT_PROPERTY_ROW, row);
-						selectedRow.put(TiC.PROPERTY_ROW_DATA, row.getProperties());
-						if (getParent() instanceof TableViewSectionProxy) {
-							selectedRow.put(TiC.PROPERTY_SECTION, getParent());
+							while (i.hasNext()) {
+								final TableViewRowProxy row = i.next();
+								final KrollDict selectedRow = new KrollDict();
+
+								selectedRow.put(TiC.PROPERTY_INDEX, row.index);
+								selectedRow.put(TiC.EVENT_PROPERTY_ROW, row);
+								selectedRow.put(TiC.PROPERTY_ROW_DATA, row.getProperties());
+								if (getParent() instanceof TableViewSectionProxy) {
+									selectedRow.put(TiC.PROPERTY_SECTION, getParent());
+								}
+
+								selectedRows.add(selectedRow);
+							}
+
+							if (selectedRows.size() > 0) {
+								final KrollDict data = new KrollDict();
+
+								data.put(TiC.PROPERTY_SELECTED_ROWS, selectedRows.toArray(new KrollDict[0]));
+								data.put(TiC.PROPERTY_STARTING_ROW, selectedRows.get(0));
+								proxy.fireEvent(TiC.EVENT_ROWS_SELECTED, data);
+							}
 						}
-
-						selectedRows.add(selectedRow);
+						selectionCount = tracker.getSelection().size();
 					}
-
-					if (selectedRows.size() > 0) {
-						final KrollDict data = new KrollDict();
-
-						data.put(TiC.PROPERTY_SELECTED_ROWS, selectedRows.toArray(new KrollDict[0]));
-						data.put(TiC.PROPERTY_STARTING_ROW, selectedRows.get(0));
-						proxy.fireEvent(TiC.EVENT_ROWS_SELECTED, data);
-					}
-				}
-				selectionCount = tracker.getSelection().size();
+				});
+				this.adapter.setTracker(this.tracker);
 			}
-		});
-		this.adapter.setTracker(this.tracker);
+		}
 
 		// Disable pull-down refresh support until a Titanium "RefreshControl" has been assigned.
 		setSwipeRefreshEnabled(false);
@@ -456,7 +461,7 @@ public class TiTableView extends TiSwipeRefreshLayout implements OnSearchChangeL
 	public void update()
 	{
 		final KrollDict properties = this.proxy.getProperties();
-		final boolean shouldPreload = this.rows.size() == 0;
+		final boolean firstUpdate = this.rows.size() == 0;
 
 		final boolean hasHeader = properties.containsKeyAndNotNull(TiC.PROPERTY_HEADER_TITLE)
 			|| properties.containsKeyAndNotNull(TiC.PROPERTY_HEADER_VIEW);
@@ -558,7 +563,7 @@ public class TiTableView extends TiSwipeRefreshLayout implements OnSearchChangeL
 			this.proxy.fireEvent(TiC.EVENT_NO_RESULTS, null);
 		}
 
-		if (shouldPreload) {
+		if (firstUpdate) {
 			final int preloadSize = Math.min(this.rows.size(), PRELOAD_SIZE);
 
 			for (int i = 0; i < preloadSize; i++) {
@@ -577,12 +582,12 @@ public class TiTableView extends TiSwipeRefreshLayout implements OnSearchChangeL
 		final Activity activity = TiApplication.getAppCurrentActivity();
 		final View previousFocus = activity != null ? activity.getCurrentFocus() : null;
 
-		if (previousFocus != null) {
-			activity.runOnUiThread(new Runnable()
+		activity.runOnUiThread(new Runnable()
+		{
+			@Override
+			public void run()
 			{
-				@Override
-				public void run()
-				{
+				if (previousFocus != null) {
 					final View currentFocus = activity != null ? activity.getCurrentFocus() : null;
 
 					if (currentFocus != previousFocus) {
@@ -591,7 +596,18 @@ public class TiTableView extends TiSwipeRefreshLayout implements OnSearchChangeL
 						previousFocus.requestFocus();
 					}
 				}
-			});
-		}
+
+				if (firstUpdate && tracker != null) {
+					for (final TableViewRowProxy row : rows) {
+
+						// Re-select previously selected items.
+						// This can occur when the theme is changed.
+						if (row.isSelected()) {
+							tracker.select(row);
+						}
+					}
+				}
+			}
+		});
 	}
 }

@@ -46,6 +46,7 @@ import ti.modules.titanium.ui.widget.TiUIListView;
 		TiC.PROPERTY_SEPARATOR_COLOR,
 		TiC.PROPERTY_SEPARATOR_HEIGHT,
 		TiC.PROPERTY_SEPARATOR_STYLE,
+		TiC.PROPERTY_SHOW_SELECTION_CHECK,
 		TiC.PROPERTY_SHOW_VERTICAL_SCROLL_INDICATOR,
 		TiC.PROPERTY_TEMPLATES,
 		TiC.PROPERTY_TOUCH_FEEDBACK,
@@ -67,6 +68,7 @@ public class ListViewProxy extends RecyclerViewProxy
 		defaultValues.put(TiC.PROPERTY_CASE_INSENSITIVE_SEARCH, true);
 		defaultValues.put(TiC.PROPERTY_DEFAULT_ITEM_TEMPLATE, UIModule.LIST_ITEM_TEMPLATE_DEFAULT);
 		defaultValues.put(TiC.PROPERTY_FAST_SCROLL, false);
+		defaultValues.put(TiC.PROPERTY_SHOW_SELECTION_CHECK, true);
 		defaultValues.put(TiC.PROPERTY_TOUCH_FEEDBACK, true);
 	}
 
@@ -379,11 +381,21 @@ public class ListViewProxy extends RecyclerViewProxy
 
 			// Set list sections.
 			setSections((Object[]) value);
-		}
 
-		if (name.equals(TiC.PROPERTY_EDITING)) {
+		} else if (name.equals(TiC.PROPERTY_EDITING)) {
+			final TiViewProxy parent = getParent();
 
-			// Update list.
+			if (parent != null) {
+
+				// Due to Android limitations, selection trackers cannot be removed.
+				// Re-create ListView with new selection tracker.
+				releaseViews();
+				parent.add(this);
+			}
+
+		} else if (name.equals(TiC.PROPERTY_SHOW_SELECTION_CHECK)) {
+
+			// Update and refresh list.
 			update();
 		}
 	}

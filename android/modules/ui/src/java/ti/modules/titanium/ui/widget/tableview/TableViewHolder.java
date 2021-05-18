@@ -237,6 +237,13 @@ public class TableViewHolder extends TiRecyclerViewHolder
 					this.leftImage.setVisibility(View.VISIBLE);
 				}
 			}
+
+			// Handle selection, override row left image.
+			if (selected && tableViewProperties.optBoolean(TiC.PROPERTY_SHOW_SELECTION_CHECK, false)) {
+				this.leftImage.setImageDrawable(checkcircleDrawable);
+				this.leftImage.setVisibility(View.VISIBLE);
+			}
+
 			if (properties.containsKeyAndNotNull(TiC.PROPERTY_RIGHT_IMAGE)) {
 				final String url = properties.getString(TiC.PROPERTY_RIGHT_IMAGE);
 				final Drawable drawable = TiUIHelper.getResourceDrawable((Object) url);

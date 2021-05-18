@@ -55,6 +55,7 @@ public class ListItemProxy extends TiViewProxy
 	private KrollDict template;
 	private String templateId;
 	private boolean placeholder = false;
+	private boolean selected = false;
 
 	public ListItemProxy()
 	{
@@ -422,6 +423,24 @@ public class ListItemProxy extends TiViewProxy
 	public String getTemplateId()
 	{
 		return templateId;
+	}
+
+	/**
+	 * Determine if item is currently selected.
+	 *
+	 * @return Boolean of selection status.
+	 */
+	public boolean isSelected()
+	{
+		return selected;
+	}
+
+	/**
+	 * Set item selection status.
+	 */
+	public void setSelected(boolean selected)
+	{
+		this.selected = selected;
 	}
 
 	/**

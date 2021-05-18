@@ -239,8 +239,9 @@ public class TiC
 	public static final String PROPERTY_ADDRESS = "address";
 	public static final String PROPERTY_ALLOW_BACKGROUND = "allowBackground";
 	public static final String PROPERTY_ALLOW_MULTIPLE = "allowMultiple";
-	public static final String PROPERTY_ALLOWS_SELECTION = "allowsSelection";
-	public static final String PROPERTY_ALLOWS_MULTIPLE_SELECTION_INTERACTION = "allowsMultipleSelectionInteraction";
+	public static final String PROPERTY_ALLOWS_SELECTION_DURING_EDITING = "allowsSelectionDuringEditing";
+	public static final String PROPERTY_ALLOWS_MULTIPLE_SELECTION_DURING_EDITING
+		= "allowsMultipleSelectionDuringEditing";
 	public static final String PROPERTY_ALTITUDE = "altitude";
 	public static final String PROPERTY_ALTITUDE_ACCURACY = "altitudeAccuracy";
 	public static final String PROPERTY_ATTRIBUTES = "attributes";
@@ -691,6 +692,7 @@ public class TiC
 	public static final String PROPERTY_SHOW_VERTICAL_SCROLL_INDICATOR = "showVerticalScrollIndicator";
 	public static final String PROPERTY_SHOW_PAGING_CONTROL = "showPagingControl";
 	public static final String PROPERTY_SHOW_PROGRESS = "showProgress";
+	public static final String PROPERTY_SHOW_SELECTION_CHECK = "showSelectionCheck";
 	public static final String PROPERTY_SISTER = "sister";
 	public static final String PROPERTY_SIZE = "size";
 	public static final String PROPERTY_SOFT_KEYBOARD_ON_FOCUS = "softKeyboardOnFocus";

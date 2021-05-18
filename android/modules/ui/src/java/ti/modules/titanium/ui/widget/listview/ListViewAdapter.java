@@ -94,8 +94,11 @@ public class ListViewAdapter extends TiRecyclerViewAdapter<ListViewHolder>
 		final ListItemProxy item = this.models.get(position);
 		final boolean selected = this.tracker != null ? this.tracker.isSelected(item) : false;
 
+		// Notify item of its selected status.
+		// This is necessary to maintain selection status on theme change.
+		item.setSelected(selected);
+
 		// Update ListViewHolder with new model data.
-		// TODO: Optimize `bind()`.
 		holder.bind(item, selected);
 
 		// Handle ListView markers.

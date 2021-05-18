@@ -203,55 +203,60 @@ public class TiListView extends TiSwipeRefreshLayout implements OnSearchChangeLi
 			},
 			StorageStrategy.createLongStorage()
 		);
-		if (proxy.getProperties().optBoolean(TiC.PROPERTY_ALLOWS_SELECTION, true)) {
-			if (proxy.getProperties().optBoolean(TiC.PROPERTY_ALLOWS_MULTIPLE_SELECTION_INTERACTION, false)) {
+
+		if (proxy.getProperties().optBoolean(TiC.PROPERTY_EDITING, false)
+			&& proxy.getProperties().optBoolean(TiC.PROPERTY_ALLOWS_SELECTION_DURING_EDITING, false)) {
+			if (proxy.getProperties().optBoolean(TiC.PROPERTY_ALLOWS_MULTIPLE_SELECTION_DURING_EDITING, false)) {
 				this.tracker = trackerBuilder.withSelectionPredicate(SelectionPredicates.createSelectAnything())
 					.build();
 			} else {
 				this.tracker = trackerBuilder.withSelectionPredicate(SelectionPredicates.createSelectSingleAnything())
 					.build();
 			}
-		}
-		this.tracker.addObserver(new SelectionTracker.SelectionObserver()
-		{
-			int selectionCount = 0;
 
-			@Override
-			public void onSelectionChanged()
-			{
-				super.onSelectionChanged();
+			if (this.tracker != null) {
+				this.tracker.addObserver(new SelectionTracker.SelectionObserver()
+				{
+					int selectionCount = 0;
 
-				if (tracker.hasSelection() && selectionCount != tracker.getSelection().size()) {
-					final List<KrollDict> selectedItems = new ArrayList<>(selectionCount);
-					final Iterator<ListItemProxy> i = tracker.getSelection().iterator();
+					@Override
+					public void onSelectionChanged()
+					{
+						super.onSelectionChanged();
 
-					while (i.hasNext()) {
-						final ListItemProxy item = i.next();
-						final KrollDict selectedItem = new KrollDict();
-						final ListSectionProxy section =
-							item.getParent() != null ? (ListSectionProxy) item.getParent() : null;
+						if (tracker.hasSelection() && selectionCount != tracker.getSelection().size()) {
+							final List<KrollDict> selectedItems = new ArrayList<>(selectionCount);
+							final Iterator<ListItemProxy> i = tracker.getSelection().iterator();
 
-						if (section != null) {
-							selectedItem.put(TiC.PROPERTY_ITEM_INDEX, item.getIndexInSection());
-							selectedItem.put(TiC.PROPERTY_SECTION, section);
-							selectedItem.put(TiC.PROPERTY_SECTION_INDEX, proxy.getIndexOfSection(section));
+							while (i.hasNext()) {
+								final ListItemProxy item = i.next();
+								final KrollDict selectedItem = new KrollDict();
+								final ListSectionProxy section =
+									item.getParent() != null ? (ListSectionProxy) item.getParent() : null;
 
-							selectedItems.add(selectedItem);
+								if (section != null) {
+									selectedItem.put(TiC.PROPERTY_ITEM_INDEX, item.getIndexInSection());
+									selectedItem.put(TiC.PROPERTY_SECTION, section);
+									selectedItem.put(TiC.PROPERTY_SECTION_INDEX, proxy.getIndexOfSection(section));
+
+									selectedItems.add(selectedItem);
+								}
+							}
+
+							if (selectedItems.size() > 0) {
+								final KrollDict data = new KrollDict();
+
+								data.put(TiC.PROPERTY_SELECTED_ITEMS, selectedItems.toArray(new KrollDict[0]));
+								data.put(TiC.PROPERTY_STARTING_ITEM, selectedItems.get(0));
+								proxy.fireEvent(TiC.EVENT_ITEMS_SELECTED, data);
+							}
 						}
+						selectionCount = tracker.getSelection().size();
 					}
-
-					if (selectedItems.size() > 0) {
-						final KrollDict data = new KrollDict();
-
-						data.put(TiC.PROPERTY_SELECTED_ITEMS, selectedItems.toArray(new KrollDict[0]));
-						data.put(TiC.PROPERTY_STARTING_ITEM, selectedItems.get(0));
-						proxy.fireEvent(TiC.EVENT_ITEMS_SELECTED, data);
-					}
-				}
-				selectionCount = tracker.getSelection().size();
+				});
+				this.adapter.setTracker(this.tracker);
 			}
-		});
-		this.adapter.setTracker(this.tracker);
+		}
 
 		// Disable pull-down refresh support until a Titanium "RefreshControl" has been assigned.
 		setSwipeRefreshEnabled(false);
@@ -439,7 +444,7 @@ public class TiListView extends TiSwipeRefreshLayout implements OnSearchChangeLi
 	{
 
 		final KrollDict properties = this.proxy.getProperties();
-		final boolean shouldPreload = this.items.size() == 0;
+		final boolean firstUpdate = this.items.size() == 0;
 		int filterResultsCount = 0;
 
 		final boolean hasHeader = properties.containsKeyAndNotNull(TiC.PROPERTY_HEADER_TITLE)
@@ -542,7 +547,7 @@ public class TiListView extends TiSwipeRefreshLayout implements OnSearchChangeLi
 		}
 
 		// Pre-load items of empty list.
-		if (shouldPreload) {
+		if (firstUpdate) {
 			final int preloadSize = Math.min(this.items.size(), PRELOAD_SIZE);
 
 			for (int i = 0; i < preloadSize; i++) {
@@ -561,12 +566,12 @@ public class TiListView extends TiSwipeRefreshLayout implements OnSearchChangeLi
 		final Activity activity = TiApplication.getAppCurrentActivity();
 		final View previousFocus = activity != null ? activity.getCurrentFocus() : null;
 
-		if (previousFocus != null) {
-			activity.runOnUiThread(new Runnable()
+		activity.runOnUiThread(new Runnable()
+		{
+			@Override
+			public void run()
 			{
-				@Override
-				public void run()
-				{
+				if (previousFocus != null) {
 					final View currentFocus = activity != null ? activity.getCurrentFocus() : null;
 
 					if (currentFocus != previousFocus) {
@@ -575,7 +580,18 @@ public class TiListView extends TiSwipeRefreshLayout implements OnSearchChangeLi
 						previousFocus.requestFocus();
 					}
 				}
-			});
-		}
+
+				if (firstUpdate && tracker != null) {
+					for (final ListItemProxy item : items) {
+
+						// Re-select previously selected items.
+						// This can occur when the theme is changed.
+						if (item.isSelected()) {
+							tracker.select(item);
+						}
+					}
+				}
+			}
+		});
 	}
 }
