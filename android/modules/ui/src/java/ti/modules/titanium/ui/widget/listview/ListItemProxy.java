@@ -652,13 +652,11 @@ public class ListItemProxy extends TiViewProxy
 			String selectionColor = null;
 
 			switch ((Integer) value) {
-				case UIModule.SELECTION_STYLE_BLUE:
-					selectionColor = "#3399BEFB";
-					break;
-				case UIModule.SELECTION_STYLE_GRAY:
-					selectionColor = "#33808080";
+				case UIModule.SELECTION_STYLE_NONE:
+					selectionColor = "transparent";
 					break;
 			}
+
 			setProperty(TiC.PROPERTY_BACKGROUND_SELECTED_COLOR, selectionColor);
 		}
 

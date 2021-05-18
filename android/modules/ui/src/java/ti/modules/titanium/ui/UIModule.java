@@ -252,9 +252,7 @@ public class UIModule extends KrollModule
 	@Kroll.constant
 	public static final int SELECTION_STYLE_NONE = 0;
 	@Kroll.constant
-	public static final int SELECTION_STYLE_BLUE = 1;
-	@Kroll.constant
-	public static final int SELECTION_STYLE_GRAY = 2;
+	public static final int SELECTION_STYLE_DEFAULT = 1;
 
 	@Kroll.constant
 	public static final int SWITCH_STYLE_CHECKBOX = 0;
