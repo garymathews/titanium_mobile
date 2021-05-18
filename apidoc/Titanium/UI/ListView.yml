@@ -644,8 +644,7 @@ properties:
         templates that are controls, such as a button, slider, etc.
     type: Boolean
     default: true
-    platforms: [android, iphone, ipad, macos]
-    since: {android: "10.1.0", iphone: "8.2.0", ipad: "8.2.0", macos: "9.2.0"}
+    platforms: [iphone, ipad, macos]
 
   - name: canScroll
     summary: Determines if the list view can scroll in response to user actions.
@@ -690,15 +689,15 @@ properties:
     summary: Determines whether this list view items can be selected while editing the table.
     type: Boolean
     default: false
-    since: "5.4.0"
-    platforms: [iphone, ipad, macos]
+    since: {android: "10.1.0", iphone: "5.4.0", ipad: "5.4.0", macos: "9.2.0"}
+    platforms: [android, iphone, ipad, macos]
 
   - name: allowsMultipleSelectionDuringEditing
     summary: Determines whether multiple items of this list view can be selected at the same time while editing the table.
     type: Boolean
     default: false
-    since: "7.0.0"
-    platforms: [iphone, ipad, macos]
+    since: {android: "10.1.0", iphone: "7.0.0", ipad: "7.0.0", macos: "9.2.0"}
+    platforms: [android, iphone, ipad, macos]
 
   - name: allowsMultipleSelectionInteraction
     summary: Allows a two-finger pan gesture to automatically transition the table view into editing mode and start selecting rows.
@@ -953,6 +952,13 @@ properties:
     summary: Number of sections in this list view.
     type: Number
     permission: read-only
+
+  - name: showSelectionCheck
+    summary: Determines whether the selection checkmark is displayed on selected items.
+    type: Boolean
+    default: true
+    since: {android: "10.1.0"}
+    platforms: [android]
 
   - name: showVerticalScrollIndicator
     summary: Determines whether this list view displays a vertical scroll indicator.

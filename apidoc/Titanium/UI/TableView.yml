@@ -1064,16 +1064,17 @@ properties:
     description: Set to `false` to prevent rows from being selected.
     type: Boolean
     default: true
-    platforms: [android, iphone, ipad, macos]
-    since: {android: "10.1.0", iphone: "8.2.0", ipad: "8.2.0", macos: "9.2.0"}
+    platforms: [iphone, ipad, macos]
+    since: {iphone: "8.2.0", ipad: "8.2.0", macos: "9.2.0"}
 
   - name: allowsSelectionDuringEditing
     summary: Determines whether this table's rows can be selected while editing the table.
     description: Set to `true` to allow rows to be selected.
     type: Boolean
     default: false
-    platforms: [iphone, ipad, macos]
-
+    since: {android: "10.1.0", iphone: "5.4.0", ipad: "5.4.0", macos: "9.2.0"}
+    platforms: [android, iphone, ipad, macos]
+    
   - name: backgroundColor
     summary: Background color of the view, as a color name or hex triplet.
     description: |
@@ -1233,8 +1234,8 @@ properties:
     summary: Determines whether multiple items of this table view can be selected at the same time while editing the table.
     type: Boolean
     default: false
-    since: 8.2.0
-    platforms: [iphone, ipad, macos]
+    since: {android: "10.1.0", iphone: "8.2.0", ipad: "8.2.0", macos: "9.2.0"}
+    platforms: [android, iphone, ipad, macos]
 
   - name: allowsMultipleSelectionInteraction
     summary: Allows a two-finger pan gesture to automatically transition the table view into editing mode and start selecting rows.
@@ -1246,8 +1247,8 @@ properties:
         Once user interaction stops the <Titanium.UI.TableView.rowsselected> event is fired.
     type: Boolean
     default: false
-    since: {android: "10.1.0", iphone: "8.2.0", ipad: "8.2.0", macos: "9.2.0"}
-    platforms: [android, iphone, ipad, macos]
+    since: {iphone: "8.2.0", ipad: "8.2.0", macos: "9.2.0"}
+    platforms: [iphone, ipad, macos]
 
   - name: footerView
     summary: Table view footer as a view that will be rendered instead of a label.
@@ -1546,6 +1547,13 @@ properties:
     constants: Titanium.UI.TABLE_VIEW_SEPARATOR_STYLE_*
     platforms: [iphone, ipad, android, macos]
     since: {android: "5.2.0"}
+
+  - name: showSelectionCheck
+    summary: Determines whether the selection checkmark is displayed on selected rows.
+    type: Boolean
+    default: true
+    since: {android: "10.1.0"}
+    platforms: [android]
 
   - name: showVerticalScrollIndicator
     summary: Determines whether this table view displays a vertical scroll indicator.
