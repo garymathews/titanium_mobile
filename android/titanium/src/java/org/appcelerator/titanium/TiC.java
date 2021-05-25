@@ -343,6 +343,7 @@ public class TiC
 	public static final String PROPERTY_CLIP_VIEWS = "clipViews";
 	public static final String PROPERTY_CODE = "code";
 	public static final String PROPERTY_COLOR = "color";
+	public static final String PROPERTY_COLUMNS = "columns";
 	public static final String PROPERTY_COMMENT = "comment";
 	public static final String PROPERTY_CONTENT_HEIGHT = "contentHeight";
 	public static final String PROPERTY_CONTENT_SIZE = "contentSize";
@@ -369,6 +370,7 @@ public class TiC
 	public static final String PROPERTY_CURVE = "curve";
 	public static final String PROPERTY_DATA = "data";
 	public static final String PROPERTY_DATE = "date";
+	public static final String PROPERTY_DATE_PICKER_STYLE = "datePickerStyle";
 	public static final String PROPERTY_DAY_BEFORE_MONTH = "dayBeforeMonth";
 	public static final String PROPERTY_DECODE_RETRIES = "decodeRetries";
 	public static final String PROPERTY_DESCRIPTION = "description";
@@ -652,6 +654,7 @@ public class TiC
 	public static final String PROPERTY_ROTATION_Y = "rotationY";
 	public static final String PROPERTY_ROW_DATA = "rowData";
 	public static final String PROPERTY_ROW_HEIGHT = "rowHeight";
+	public static final String PROPERTY_ROWS = "rows";
 	public static final String PROPERTY_SCALE = "scale";
 	public static final String PROPERTY_SCALE_X = "scaleX";
 	public static final String PROPERTY_SCALE_Y = "scaleY";
@@ -780,7 +783,6 @@ public class TiC
 	public static final String PROPERTY_VISIBLE = "visible";
 	public static final String PROPERTY_VISIBILITY = "visibility";
 	public static final String PROPERTY_VISIBLE_ITEM_COUNT = "visibleItemCount";
-	public static final String PROPERTY_VISIBLE_ITEMS = "visibleItems";
 	public static final String PROPERTY_VIEW = "view";
 	public static final String PROPERTY_VIEWS = "views";
 	public static final String PROPERTY_VOLUME = "volume";
