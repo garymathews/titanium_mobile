@@ -1153,8 +1153,8 @@ properties:
   - name: selectedItems
     summary: Returns the selected list view items.
     type: Array<ListItemEventType>
-    since: "7.0.0"
-    platforms: [iphone, ipad, macos]
+    since: { android: "10.1.0", iphone: "7.0.0", ipad: "7.0.0", macos: "9.2.0" }
+    platforms: [android, iphone, ipad, macos]
 
 methods:
   - name: scrollToItem
