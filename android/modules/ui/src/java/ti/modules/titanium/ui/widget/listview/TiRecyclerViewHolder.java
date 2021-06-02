@@ -41,6 +41,7 @@ public abstract class TiRecyclerViewHolder extends RecyclerView.ViewHolder
 	private static final String TAG = "TiRecyclerViewHolder";
 
 	protected static final int COLOR_GRAY = Color.rgb(169, 169, 169);
+	protected static int COLOR_NORMAL;
 	protected static int COLOR_PRIMARY;
 	protected static int COLOR_SELECTED;
 
@@ -49,6 +50,7 @@ public abstract class TiRecyclerViewHolder extends RecyclerView.ViewHolder
 	protected static Drawable dragDrawable;
 	protected static Drawable moreDrawable;
 	protected static Drawable checkcircleDrawable;
+	protected static Drawable circleDrawable;
 
 	protected static Resources resources;
 
@@ -58,6 +60,7 @@ public abstract class TiRecyclerViewHolder extends RecyclerView.ViewHolder
 	{
 		super(viewGroup);
 
+		COLOR_NORMAL = MaterialColors.getColor(context, R.attr.colorButtonNormal, Color.DKGRAY);
 		COLOR_PRIMARY = MaterialColors.getColor(context, R.attr.colorPrimary, Color.DKGRAY);
 		COLOR_SELECTED = ColorUtils.setAlphaComponent(COLOR_PRIMARY, 20);
 
@@ -121,6 +124,21 @@ public abstract class TiRecyclerViewHolder extends RecyclerView.ViewHolder
 
 				// Always set tint color in case of dynamic theme change.
 				checkcircleDrawable.setTint(COLOR_PRIMARY);
+			}
+
+			// Attempt to load `titanium_icon_circle` drawable.
+			if (circleDrawable == null) {
+				try {
+					final int icon_circle_id = R.drawable.titanium_icon_circle;
+					circleDrawable = resources.getDrawable(icon_circle_id);
+				} catch (Exception e) {
+					Log.w(TAG, "Drawable 'drawable.titanium_icon_circle' not found.");
+				}
+			}
+			if (circleDrawable != null) {
+
+				// Always set tint color in case of dynamic theme change.
+				circleDrawable.setTint(COLOR_NORMAL);
 			}
 		} else {
 			Log.w(TAG, "Could not obtain context resources instance.");
