@@ -311,6 +311,27 @@ public class ListViewProxy extends RecyclerViewProxy
 	}
 
 	/**
+	 * Get selected items.
+	 *
+	 * @return Array of ListItemProxy.
+	 */
+	@Kroll.getProperty
+	public KrollDict[] getSelectedItems()
+	{
+		final TiListView listView = getListView();
+
+		if (listView != null) {
+			final List<KrollDict> selectedItems = listView.getSelectedItems();
+
+			if (selectedItems != null) {
+				return selectedItems.toArray(new KrollDict[selectedItems.size()]);
+			}
+		}
+
+		return new KrollDict[0];
+	}
+
+	/**
 	 * Is ListView currently filtered by search results.
 	 *
 	 * @return Boolean

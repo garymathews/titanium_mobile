@@ -56,6 +56,7 @@ public class TiListView extends TiSwipeRefreshLayout implements OnSearchChangeLi
 	private boolean isScrolling = false;
 	private int lastScrollDeltaY;
 	private String filterQuery;
+	private List<KrollDict> selectedItems;
 
 	public TiListView(ListViewProxy proxy)
 	{
@@ -225,7 +226,7 @@ public class TiListView extends TiSwipeRefreshLayout implements OnSearchChangeLi
 						super.onSelectionChanged();
 
 						if (tracker.hasSelection() && selectionCount != tracker.getSelection().size()) {
-							final List<KrollDict> selectedItems = new ArrayList<>(selectionCount);
+							selectedItems = new ArrayList<>(selectionCount);
 							final Iterator<ListItemProxy> i = tracker.getSelection().iterator();
 
 							while (i.hasNext()) {
@@ -250,8 +251,13 @@ public class TiListView extends TiSwipeRefreshLayout implements OnSearchChangeLi
 								data.put(TiC.PROPERTY_STARTING_ITEM, selectedItems.get(0));
 								proxy.fireEvent(TiC.EVENT_ITEMS_SELECTED, data);
 							}
+
+							selectionCount = tracker.getSelection().size();
+
+						} else if (!tracker.hasSelection()) {
+							selectedItems = null;
+							selectionCount = 0;
 						}
-						selectionCount = tracker.getSelection().size();
 					}
 				});
 				this.adapter.setTracker(this.tracker);
@@ -360,6 +366,11 @@ public class TiListView extends TiSwipeRefreshLayout implements OnSearchChangeLi
 			}
 		}
 		return null;
+	}
+
+	public List<KrollDict> getSelectedItems()
+	{
+		return this.selectedItems;
 	}
 
 	/**
