@@ -95,6 +95,7 @@ public class ListViewHolder extends TiRecyclerViewHolder
 
 		// Update model proxy holder.
 		this.proxy = new WeakReference<>(proxy);
+		proxy.setHolder(this);
 
 		// Obtain ListView proxy for item.
 		final ListViewProxy listViewProxy = proxy.getListViewProxy();
@@ -261,8 +262,6 @@ public class ListViewHolder extends TiRecyclerViewHolder
 				setHeaderFooter(listViewProxy, sectionProperties, false, true);
 			}
 		}
-
-		proxy.setHolder(this);
 	}
 
 	/**
