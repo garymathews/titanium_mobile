@@ -18,11 +18,11 @@ import org.appcelerator.titanium.view.TiUIView;
 
 import android.app.Activity;
 
+import androidx.recyclerview.selection.SelectionTracker;
 import androidx.recyclerview.widget.RecyclerView;
 
 import ti.modules.titanium.ui.widget.TiUITableView;
 import ti.modules.titanium.ui.widget.listview.RecyclerViewProxy;
-import ti.modules.titanium.ui.widget.tableview.TableViewAdapter;
 import ti.modules.titanium.ui.widget.tableview.TiTableView;
 
 @Kroll.proxy(
@@ -705,14 +705,10 @@ public class TableViewProxy extends RecyclerViewProxy
 			final TiTableView tableView = getTableView();
 
 			if (tableView != null) {
-				final RecyclerView recyclerView = tableView.getRecyclerView();
+				final SelectionTracker tracker = tableView.getTracker();
 
-				if (recyclerView != null) {
-					final TableViewAdapter adapter = (TableViewAdapter) recyclerView.getAdapter();
-
-					if (adapter != null) {
-						adapter.getTracker().select(row);
-					}
+				if (tracker != null) {
+					tracker.select(row);
 				}
 			}
 		}

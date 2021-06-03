@@ -22,6 +22,7 @@ import org.appcelerator.titanium.view.TiUIView;
 import android.app.Activity;
 import android.view.View;
 
+import androidx.recyclerview.selection.SelectionTracker;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -696,7 +697,11 @@ public class ListViewProxy extends RecyclerViewProxy
 				final ListItemProxy item = section.getListItemAt(itemIndex);
 
 				if (item != null) {
-					((ListViewAdapter) listView.getRecyclerView().getAdapter()).getTracker().select(item);
+					final SelectionTracker tracker = listView.getTracker();
+
+					if (tracker != null) {
+						tracker.select(item);
+					}
 				}
 			}
 		}

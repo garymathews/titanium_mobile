@@ -202,6 +202,13 @@ public class TiTableView extends TiSwipeRefreshLayout implements OnSearchChangeL
 								}
 								return null;
 							}
+
+							@Override
+							public boolean inSelectionHotspot(@NonNull MotionEvent e)
+							{
+								// Returning true allows taps to immediately select this row.
+								return true;
+							}
 						};
 					}
 					return null;
@@ -210,9 +217,14 @@ public class TiTableView extends TiSwipeRefreshLayout implements OnSearchChangeL
 			StorageStrategy.createLongStorage()
 		);
 
-		if (proxy.getProperties().optBoolean(TiC.PROPERTY_EDITING, false)
-			&& proxy.getProperties().optBoolean(TiC.PROPERTY_ALLOWS_SELECTION_DURING_EDITING, false)) {
-			if (proxy.getProperties().optBoolean(TiC.PROPERTY_ALLOWS_MULTIPLE_SELECTION_DURING_EDITING, false)) {
+		final KrollDict properties = proxy.getProperties();
+		final boolean editing = properties.optBoolean(TiC.PROPERTY_EDITING, false);
+		final boolean allowsSelection = properties.optBoolean(TiC.PROPERTY_ALLOWS_SELECTION_DURING_EDITING, false);
+		final boolean allowsMultipleSelection
+			= properties.optBoolean(TiC.PROPERTY_ALLOWS_MULTIPLE_SELECTION_DURING_EDITING, false);
+
+		if (editing && allowsSelection) {
+			if (allowsMultipleSelection) {
 				this.tracker = trackerBuilder.withSelectionPredicate(SelectionPredicates.createSelectAnything())
 					.build();
 			} else {
@@ -230,8 +242,10 @@ public class TiTableView extends TiSwipeRefreshLayout implements OnSearchChangeL
 					{
 						super.onSelectionChanged();
 
-						if (tracker.hasSelection() && selectionCount != tracker.getSelection().size()) {
-							final List<KrollDict> selectedRows = new ArrayList<>(selectionCount);
+						selectionCount = tracker.hasSelection() ? tracker.getSelection().size() : 0;
+						final List<KrollDict> selectedRows = new ArrayList<>(selectionCount);
+
+						if (tracker.hasSelection()) {
 							final Iterator<TableViewRowProxy> i = tracker.getSelection().iterator();
 
 							while (i.hasNext()) {
@@ -247,16 +261,13 @@ public class TiTableView extends TiSwipeRefreshLayout implements OnSearchChangeL
 
 								selectedRows.add(selectedRow);
 							}
-
-							if (selectedRows.size() > 0) {
-								final KrollDict data = new KrollDict();
-
-								data.put(TiC.PROPERTY_SELECTED_ROWS, selectedRows.toArray(new KrollDict[0]));
-								data.put(TiC.PROPERTY_STARTING_ROW, selectedRows.get(0));
-								proxy.fireEvent(TiC.EVENT_ROWS_SELECTED, data);
-							}
 						}
-						selectionCount = tracker.getSelection().size();
+
+						final KrollDict data = new KrollDict();
+
+						data.put(TiC.PROPERTY_SELECTED_ROWS, selectedRows.toArray(new KrollDict[0]));
+						data.put(TiC.PROPERTY_STARTING_ROW, selectedRows.isEmpty() ? null : selectedRows.get(0));
+						proxy.fireEvent(TiC.EVENT_ROWS_SELECTED, data);
 					}
 				});
 				this.adapter.setTracker(this.tracker);
@@ -378,6 +389,16 @@ public class TiTableView extends TiSwipeRefreshLayout implements OnSearchChangeL
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Get selection tracker.
+	 *
+	 * @return SelectionTracker
+	 */
+	public SelectionTracker getTracker()
+	{
+		return this.tracker;
 	}
 
 	/**
