@@ -51,12 +51,12 @@ public class TiListView extends TiSwipeRefreshLayout implements OnSearchChangeLi
 	private final List<ListItemProxy> items = new ArrayList<>(CACHE_SIZE);
 	private final ListViewProxy proxy;
 	private final TiNestedRecyclerView recyclerView;
-	private SelectionTracker tracker = null;
+	private final List<KrollDict> selectedItems = new ArrayList<>();
 
+	private SelectionTracker tracker = null;
 	private boolean isScrolling = false;
 	private int lastScrollDeltaY;
 	private String filterQuery;
-	private List<KrollDict> selectedItems;
 
 	public TiListView(ListViewProxy proxy)
 	{
@@ -221,6 +221,13 @@ public class TiListView extends TiSwipeRefreshLayout implements OnSearchChangeLi
 							@Override
 							public boolean inSelectionHotspot(@NonNull MotionEvent e)
 							{
+								if (holder.getProxy() instanceof ListItemProxy) {
+									final ListItemProxy item = (ListItemProxy) holder.getProxy();
+
+									// Prevent selection of placeholders.
+									return !item.isPlaceholder();
+								}
+
 								// Returning true allows taps to immediately select this row.
 								return true;
 							}
@@ -250,15 +257,12 @@ public class TiListView extends TiSwipeRefreshLayout implements OnSearchChangeLi
 			if (this.tracker != null) {
 				this.tracker.addObserver(new SelectionTracker.SelectionObserver()
 				{
-					int selectionCount = 0;
-
 					@Override
 					public void onSelectionChanged()
 					{
 						super.onSelectionChanged();
 
-						selectionCount = tracker.hasSelection() ? tracker.getSelection().size() : 0;
-						selectedItems = new ArrayList<>(selectionCount);
+						selectedItems.clear();
 
 						if (tracker.hasSelection()) {
 							final Iterator<ListItemProxy> i = tracker.getSelection().iterator();
@@ -266,6 +270,9 @@ public class TiListView extends TiSwipeRefreshLayout implements OnSearchChangeLi
 							while (i.hasNext()) {
 								final ListItemProxy item = i.next();
 
+								if (item.isPlaceholder()) {
+									continue;
+								}
 								if (!allowsMultipleSelection) {
 									item.fireEvent(TiC.EVENT_CLICK, null);
 									return;

@@ -56,8 +56,9 @@ public class TiTableView extends TiSwipeRefreshLayout implements OnSearchChangeL
 	private final TableViewProxy proxy;
 	private final TiNestedRecyclerView recyclerView;
 	private final List<TableViewRowProxy> rows = new ArrayList<>(CACHE_SIZE);
-	private SelectionTracker tracker;
+	private final List<KrollDict> selectedRows = new ArrayList<>();
 
+	private SelectionTracker tracker;
 	private boolean isScrolling = false;
 	private int scrollOffsetX = 0;
 	private int scrollOffsetY = 0;
@@ -206,6 +207,13 @@ public class TiTableView extends TiSwipeRefreshLayout implements OnSearchChangeL
 							@Override
 							public boolean inSelectionHotspot(@NonNull MotionEvent e)
 							{
+								if (holder.getProxy() instanceof TableViewRowProxy) {
+									final TableViewRowProxy row = (TableViewRowProxy) holder.getProxy();
+
+									// Prevent selection of placeholders.
+									return !row.isPlaceholder();
+								}
+
 								// Returning true allows taps to immediately select this row.
 								return true;
 							}
@@ -235,15 +243,12 @@ public class TiTableView extends TiSwipeRefreshLayout implements OnSearchChangeL
 			if (this.tracker != null) {
 				this.tracker.addObserver(new SelectionTracker.SelectionObserver()
 				{
-					int selectionCount = 0;
-
 					@Override
 					public void onSelectionChanged()
 					{
 						super.onSelectionChanged();
 
-						selectionCount = tracker.hasSelection() ? tracker.getSelection().size() : 0;
-						final List<KrollDict> selectedRows = new ArrayList<>(selectionCount);
+						selectedRows.clear();
 
 						if (tracker.hasSelection()) {
 							final Iterator<TableViewRowProxy> i = tracker.getSelection().iterator();
@@ -251,6 +256,9 @@ public class TiTableView extends TiSwipeRefreshLayout implements OnSearchChangeL
 							while (i.hasNext()) {
 								final TableViewRowProxy row = i.next();
 
+								if (row.isPlaceholder()) {
+									continue;
+								}
 								if (!allowsMultipleSelection) {
 									row.fireEvent(TiC.EVENT_CLICK, null);
 									return;
