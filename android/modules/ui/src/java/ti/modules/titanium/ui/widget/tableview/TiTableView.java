@@ -250,6 +250,12 @@ public class TiTableView extends TiSwipeRefreshLayout implements OnSearchChangeL
 
 							while (i.hasNext()) {
 								final TableViewRowProxy row = i.next();
+
+								if (!allowsMultipleSelection) {
+									row.fireEvent(TiC.EVENT_CLICK, null);
+									return;
+								}
+
 								final KrollDict selectedRow = new KrollDict();
 
 								selectedRow.put(TiC.PROPERTY_INDEX, row.index);
@@ -263,11 +269,13 @@ public class TiTableView extends TiSwipeRefreshLayout implements OnSearchChangeL
 							}
 						}
 
-						final KrollDict data = new KrollDict();
+						if (allowsMultipleSelection) {
+							final KrollDict data = new KrollDict();
 
-						data.put(TiC.PROPERTY_SELECTED_ROWS, selectedRows.toArray(new KrollDict[0]));
-						data.put(TiC.PROPERTY_STARTING_ROW, selectedRows.isEmpty() ? null : selectedRows.get(0));
-						proxy.fireEvent(TiC.EVENT_ROWS_SELECTED, data);
+							data.put(TiC.PROPERTY_SELECTED_ROWS, selectedRows.toArray(new KrollDict[0]));
+							data.put(TiC.PROPERTY_STARTING_ROW, selectedRows.isEmpty() ? null : selectedRows.get(0));
+							proxy.fireEvent(TiC.EVENT_ROWS_SELECTED, data);
+						}
 					}
 				});
 				this.adapter.setTracker(this.tracker);

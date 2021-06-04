@@ -265,11 +265,16 @@ public class TiListView extends TiSwipeRefreshLayout implements OnSearchChangeLi
 
 							while (i.hasNext()) {
 								final ListItemProxy item = i.next();
-								final KrollDict selectedItem = new KrollDict();
-								final ListSectionProxy section =
-									item.getParent() != null ? (ListSectionProxy) item.getParent() : null;
 
-								if (section != null) {
+								if (!allowsMultipleSelection) {
+									item.fireEvent(TiC.EVENT_CLICK, null);
+									return;
+								}
+
+								if (item.getParent() instanceof ListSectionProxy) {
+									final KrollDict selectedItem = new KrollDict();
+									final ListSectionProxy section = (ListSectionProxy) item.getParent();
+
 									selectedItem.put(TiC.PROPERTY_ITEM_INDEX, item.getIndexInSection());
 									selectedItem.put(TiC.PROPERTY_SECTION, section);
 									selectedItem.put(TiC.PROPERTY_SECTION_INDEX, proxy.getIndexOfSection(section));
@@ -279,11 +284,13 @@ public class TiListView extends TiSwipeRefreshLayout implements OnSearchChangeLi
 							}
 						}
 
-						final KrollDict data = new KrollDict();
+						if (allowsMultipleSelection) {
+							final KrollDict data = new KrollDict();
 
-						data.put(TiC.PROPERTY_SELECTED_ITEMS, selectedItems.toArray(new KrollDict[0]));
-						data.put(TiC.PROPERTY_STARTING_ITEM, selectedItems.isEmpty() ? null : selectedItems.get(0));
-						proxy.fireEvent(TiC.EVENT_ITEMS_SELECTED, data);
+							data.put(TiC.PROPERTY_SELECTED_ITEMS, selectedItems.toArray(new KrollDict[0]));
+							data.put(TiC.PROPERTY_STARTING_ITEM, selectedItems.isEmpty() ? null : selectedItems.get(0));
+							proxy.fireEvent(TiC.EVENT_ITEMS_SELECTED, data);
+						}
 					}
 				});
 				this.adapter.setTracker(this.tracker);

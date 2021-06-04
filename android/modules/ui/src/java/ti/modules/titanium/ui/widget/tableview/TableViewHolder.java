@@ -242,7 +242,8 @@ public class TableViewHolder extends TiRecyclerViewHolder
 			if (tableViewProperties.optBoolean(TiC.PROPERTY_SHOW_SELECTION_CHECK, false)
 				&& tableViewProperties.optBoolean(TiC.PROPERTY_EDITING, false)
 				&& tableViewProperties.optBoolean(TiC.PROPERTY_ALLOWS_SELECTION_DURING_EDITING, false)
-				&& tableViewProperties.optBoolean(TiC.PROPERTY_ALLOWS_MULTIPLE_SELECTION_DURING_EDITING, false)) {
+				&& tableViewProperties.optBoolean(TiC.PROPERTY_ALLOWS_MULTIPLE_SELECTION_DURING_EDITING, false)
+				&& !proxy.isPlaceholder()) {
 
 				if (selected) {
 					this.leftImage.setImageDrawable(checkcircleDrawable);

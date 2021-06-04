@@ -120,7 +120,8 @@ public class ListViewHolder extends TiRecyclerViewHolder
 		if (listViewProperties.optBoolean(TiC.PROPERTY_SHOW_SELECTION_CHECK, false)
 			&& listViewProperties.optBoolean(TiC.PROPERTY_EDITING, false)
 			&& listViewProperties.optBoolean(TiC.PROPERTY_ALLOWS_SELECTION_DURING_EDITING, false)
-			&& listViewProperties.optBoolean(TiC.PROPERTY_ALLOWS_MULTIPLE_SELECTION_DURING_EDITING, false)) {
+			&& listViewProperties.optBoolean(TiC.PROPERTY_ALLOWS_MULTIPLE_SELECTION_DURING_EDITING, false)
+			&& !proxy.isPlaceholder()) {
 
 			if (selected) {
 				this.leftImage.setImageDrawable(checkcircleDrawable);
