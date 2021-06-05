@@ -1299,7 +1299,7 @@ methods:
 
   - name: setContentOffset
     summary: Sets the value of the content offset of the list view without animation by default.
-    platforms: [iphone, ipad, macos]
+    platforms: [android, iphone, ipad, macos]
     parameters:
       - name: contentOffset
         summary: |
@@ -1312,7 +1312,7 @@ methods:
         type: AnimatedOptions
         optional: true
         default: "{ animated: false }"
-    since: 3.4.0
+    since: {android: "10.1.0", iphone: "3.4.0", ipad: "3.4.0", macos: "9.2.0"}
 
   - name: setMarker
     summary: Sets a reference item in the list view.
