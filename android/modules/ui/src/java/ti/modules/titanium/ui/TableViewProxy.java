@@ -13,6 +13,7 @@ import java.util.List;
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.titanium.TiC;
+import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.view.TiUIView;
 
@@ -24,6 +25,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import ti.modules.titanium.ui.widget.TiUITableView;
 import ti.modules.titanium.ui.widget.listview.RecyclerViewProxy;
 import ti.modules.titanium.ui.widget.tableview.TiTableView;
+
+import static android.util.TypedValue.COMPLEX_UNIT_DIP;
 
 @Kroll.proxy(
 	creatableInModule = UIModule.class,
@@ -61,6 +64,8 @@ public class TableViewProxy extends RecyclerViewProxy
 	private static final String TAG = "TableViewProxy";
 
 	private final List<TableViewSectionProxy> sections = new ArrayList<>();
+
+	private KrollDict contentOffset = null;
 
 	public TableViewProxy()
 	{
@@ -338,6 +343,69 @@ public class TableViewProxy extends RecyclerViewProxy
 		return "Ti.UI.TableView";
 	}
 
+	// NOTE: For internal use only.
+	public KrollDict getContentOffset()
+	{
+		final TiTableView tableView = getTableView();
+
+		if (tableView != null) {
+			final KrollDict contentOffset = new KrollDict();
+
+			final int x = (int) new TiDimension(tableView.getScrollOffsetX(),
+				TiDimension.TYPE_WIDTH, COMPLEX_UNIT_DIP).getAsDefault(tableView);
+			final int y = (int) new TiDimension(tableView.getScrollOffsetY(),
+				TiDimension.TYPE_HEIGHT, COMPLEX_UNIT_DIP).getAsDefault(tableView);
+
+			contentOffset.put(TiC.PROPERTY_X, x);
+			contentOffset.put(TiC.PROPERTY_Y, y);
+
+			// NOTE: Since obtaining the scroll offset from RecyclerView is unreliable
+			// when items are added/removed, also grab the current visible item instead.
+			final int currentIndex = tableView.getAdapterIndex(tableView.getFirstVisibleItem().index);
+			contentOffset.put(TiC.PROPERTY_INDEX, currentIndex);
+
+			this.contentOffset = contentOffset;
+		}
+
+		return this.contentOffset;
+	}
+
+	@Kroll.method
+	public void setContentOffset(KrollDict contentOffset, @Kroll.argument(optional = true) KrollDict options)
+	{
+		final TiTableView tableView = getTableView();
+
+		if (contentOffset != null) {
+			this.contentOffset = contentOffset;
+
+			if (tableView != null) {
+
+				if (contentOffset.containsKeyAndNotNull(TiC.PROPERTY_INDEX)) {
+
+					// If available, scroll to provided index provided by internal `getContentOffset()` method.
+					tableView.getRecyclerView().scrollToPosition(contentOffset.getInt(TiC.PROPERTY_INDEX));
+					return;
+				}
+
+				final int x = contentOffset.optInt(TiC.EVENT_PROPERTY_X, 0);
+				final int y = contentOffset.optInt(TiC.EVENT_PROPERTY_Y, 0);
+				final int pixelX = new TiDimension(x, TiDimension.TYPE_WIDTH).getAsPixels(tableView);
+				final int pixelY = new TiDimension(y, TiDimension.TYPE_HEIGHT).getAsPixels(tableView);
+
+				// NOTE: `scrollTo()` is not supported, this is a minor workaround.
+				tableView.getRecyclerView().scrollToPosition(0);
+				tableView.getRecyclerView().post(new Runnable()
+				{
+					@Override
+					public void run()
+					{
+						tableView.getRecyclerView().scrollBy(pixelX, pixelY);
+					}
+				});
+			}
+		}
+	}
+
 	/**
 	 * Get current table data.
 	 *
@@ -486,6 +554,12 @@ public class TableViewProxy extends RecyclerViewProxy
 		// Update table if being re-used.
 		if (view != null) {
 			update();
+
+			if (this.contentOffset != null) {
+
+				// Restore previous content position.
+				setContentOffset(this.contentOffset, null);
+			}
 		}
 
 		return view;
@@ -650,6 +724,8 @@ public class TableViewProxy extends RecyclerViewProxy
 	@Override
 	public void releaseViews()
 	{
+		this.contentOffset = getContentOffset();
+
 		super.releaseViews();
 
 		for (TableViewSectionProxy section : this.sections) {

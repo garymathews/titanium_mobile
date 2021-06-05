@@ -108,6 +108,10 @@ public class TiTableView extends TiSwipeRefreshLayout implements OnSearchChangeL
 			{
 				super.onScrolled(recyclerView, dx, dy);
 
+				// Update scroll offsets.
+				scrollOffsetX += dx;
+				scrollOffsetY += dy;
+
 				if (dx == 0 && dy == 0) {
 
 					// Not scrolled, skip.
@@ -115,10 +119,6 @@ public class TiTableView extends TiSwipeRefreshLayout implements OnSearchChangeL
 				}
 
 				isScrolling = true;
-
-				// Update scroll offsets.
-				scrollOffsetX += dx;
-				scrollOffsetY += dy;
 
 				final KrollDict payload = generateScrollPayload();
 
@@ -382,6 +382,16 @@ public class TiTableView extends TiSwipeRefreshLayout implements OnSearchChangeL
 	}
 
 	/**
+	 * Get linear layout manager.
+	 *
+	 * @return LinearLayoutManager
+	 */
+	public LinearLayoutManager getLayoutManager()
+	{
+		return (LinearLayoutManager) this.recyclerView.getLayoutManager();
+	}
+
+	/**
 	 * Get recycler view of table.
 	 *
 	 * @return TiNestedRecyclerView
@@ -405,6 +415,28 @@ public class TiTableView extends TiSwipeRefreshLayout implements OnSearchChangeL
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Get current x-axis scroll offset.
+	 * NOTE: This is unreliable when items are added/removed.
+	 *
+	 * @return Integer of scroll offset.
+	 */
+	public int getScrollOffsetX()
+	{
+		return this.scrollOffsetX;
+	}
+
+	/**
+	 * Get current y-axis scroll offset.
+	 * NOTE: This is unreliable when items are added/removed.
+	 *
+	 * @return Integer of scroll offset.
+	 */
+	public int getScrollOffsetY()
+	{
+		return this.scrollOffsetY;
 	}
 
 	/**
@@ -442,6 +474,50 @@ public class TiTableView extends TiSwipeRefreshLayout implements OnSearchChangeL
 	public TableViewRowProxy getAdapterItem(int index)
 	{
 		return this.rows.get(index);
+	}
+
+	/**
+	 * Obtain first visible table row proxy.
+	 *
+	 * @return TableViewRowProxy
+	 */
+	public TableViewRowProxy getFirstVisibleItem()
+	{
+		final LinearLayoutManager layoutManager = getLayoutManager();
+		final View firstVisibleView =
+			layoutManager.findViewByPosition(layoutManager.findFirstVisibleItemPosition());
+
+		if (firstVisibleView != null) {
+			final TableViewHolder firstVisibleHolder =
+				(TableViewHolder) recyclerView.getChildViewHolder(firstVisibleView);
+
+			// Obtain first visible table row proxy.
+			return (TableViewRowProxy) firstVisibleHolder.getProxy();
+		}
+
+		return null;
+	}
+
+	/**
+	 * Obtain last visible table row proxy.
+	 *
+	 * @return TableViewRowProxy
+	 */
+	public TableViewRowProxy getLastVisibleItem()
+	{
+		final LinearLayoutManager layoutManager = getLayoutManager();
+		final View lastVisibleView =
+			layoutManager.findViewByPosition(layoutManager.findLastVisibleItemPosition());
+
+		if (lastVisibleView != null) {
+			final TableViewHolder lastVisibleHolder =
+				(TableViewHolder) recyclerView.getChildViewHolder(lastVisibleView);
+
+			// Obtain last visible table row proxy.
+			return (TableViewRowProxy) lastVisibleHolder.getProxy();
+		}
+
+		return null;
 	}
 
 	/**

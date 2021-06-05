@@ -56,6 +56,8 @@ public class TiListView extends TiSwipeRefreshLayout implements OnSearchChangeLi
 	private SelectionTracker tracker = null;
 	private boolean isScrolling = false;
 	private int lastScrollDeltaY;
+	private int scrollOffsetX = 0;
+	private int scrollOffsetY = 0;
 	private String filterQuery;
 
 	public TiListView(ListViewProxy proxy)
@@ -102,6 +104,10 @@ public class TiListView extends TiSwipeRefreshLayout implements OnSearchChangeLi
 			public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy)
 			{
 				super.onScrolled(recyclerView, dx, dy);
+
+				// Update scroll offsets.
+				scrollOffsetX += dx;
+				scrollOffsetY += dy;
 
 				if (dx == 0 && dy == 0) {
 
@@ -330,7 +336,7 @@ public class TiListView extends TiSwipeRefreshLayout implements OnSearchChangeLi
 	public KrollDict generateScrollPayload()
 	{
 		final ListItemProxy firstVisibleProxy = getFirstVisibleItem();
-		final LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+		final LinearLayoutManager layoutManager = getLayoutManager();
 		final KrollDict payload = new KrollDict();
 
 		// Obtain first visible list item view.
@@ -377,6 +383,16 @@ public class TiListView extends TiSwipeRefreshLayout implements OnSearchChangeLi
 	}
 
 	/**
+	 * Get linear layout manager.
+	 *
+	 * @return LinearLayoutManager
+	 */
+	public LinearLayoutManager getLayoutManager()
+	{
+		return (LinearLayoutManager) this.recyclerView.getLayoutManager();
+	}
+
+	/**
 	 * Get recycler view of table.
 	 *
 	 * @return TiNestedRecyclerView
@@ -410,6 +426,28 @@ public class TiListView extends TiSwipeRefreshLayout implements OnSearchChangeLi
 	public List<KrollDict> getSelectedItems()
 	{
 		return this.selectedItems;
+	}
+
+	/**
+	 * Get current x-axis scroll offset.
+	 * NOTE: This is unreliable when items are added/removed.
+	 *
+	 * @return Integer of scroll offset.
+	 */
+	public int getScrollOffsetX()
+	{
+		return this.scrollOffsetX;
+	}
+
+	/**
+	 * Get current y-axis scroll offset.
+	 * NOTE: This is unreliable when items are added/removed.
+	 *
+	 * @return Integer of scroll offset.
+	 */
+	public int getScrollOffsetY()
+	{
+		return this.scrollOffsetY;
 	}
 
 	/**
@@ -456,7 +494,7 @@ public class TiListView extends TiSwipeRefreshLayout implements OnSearchChangeLi
 	 */
 	public ListItemProxy getFirstVisibleItem()
 	{
-		final LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+		final LinearLayoutManager layoutManager = getLayoutManager();
 		final View firstVisibleView =
 			layoutManager.findViewByPosition(layoutManager.findFirstVisibleItemPosition());
 
@@ -478,7 +516,7 @@ public class TiListView extends TiSwipeRefreshLayout implements OnSearchChangeLi
 	 */
 	public ListItemProxy getLastVisibleItem()
 	{
-		final LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+		final LinearLayoutManager layoutManager = getLayoutManager();
 		final View lastVisibleView =
 			layoutManager.findViewByPosition(layoutManager.findLastVisibleItemPosition());
 
