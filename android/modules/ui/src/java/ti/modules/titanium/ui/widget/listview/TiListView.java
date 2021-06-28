@@ -44,7 +44,7 @@ public class TiListView extends TiSwipeRefreshLayout implements OnSearchChangeLi
 
 	private final ListViewAdapter adapter;
 	private final DividerItemDecoration decoration;
-	private final List<ListItemProxy> items = new ArrayList<>(128);
+	private List<ListItemProxy> items = new ArrayList<>(128);
 	private final ListViewProxy proxy;
 	private final TiNestedRecyclerView recyclerView;
 	private final SelectionTracker tracker;
@@ -401,7 +401,7 @@ public class TiListView extends TiSwipeRefreshLayout implements OnSearchChangeLi
 				(ListViewHolder) recyclerView.getChildViewHolder(firstVisibleView);
 
 			// Obtain first visible list item proxy.
-			return (ListItemProxy) firstVisibleHolder.getProxy();
+			return firstVisibleHolder.getProxy();
 		}
 
 		return null;
@@ -423,7 +423,7 @@ public class TiListView extends TiSwipeRefreshLayout implements OnSearchChangeLi
 				(ListViewHolder) recyclerView.getChildViewHolder(lastVisibleView);
 
 			// Obtain last visible list item proxy.
-			return (ListItemProxy) lastVisibleHolder.getProxy();
+			return lastVisibleHolder.getProxy();
 		}
 
 		return null;
@@ -480,7 +480,7 @@ public class TiListView extends TiSwipeRefreshLayout implements OnSearchChangeLi
 	/**
 	 * Update list items for adapter.
 	 */
-	public void update()
+	public void update(boolean force)
 	{
 		final KrollDict properties = this.proxy.getProperties();
 		int filterResultsCount = 0;
@@ -496,8 +496,8 @@ public class TiListView extends TiSwipeRefreshLayout implements OnSearchChangeLi
 			query = query.toLowerCase();
 		}
 
-		// Clear current items.
-		this.items.clear();
+		// Create new list to diff for changes against old list.
+		this.items = new ArrayList<>(128);
 
 		// Add placeholder item for ListView header.
 		if (hasHeader) {
@@ -585,7 +585,7 @@ public class TiListView extends TiSwipeRefreshLayout implements OnSearchChangeLi
 		}
 
 		// Notify adapter of changes on UI thread.
-		this.adapter.notifyDataSetChanged();
+		this.adapter.update(this.items, force);
 
 		// FIXME: This is not an ideal workaround for an issue where recycled rows that were in focus
 		//        lose their focus when the data set changes. There are improvements to be made here.
@@ -609,5 +609,9 @@ public class TiListView extends TiSwipeRefreshLayout implements OnSearchChangeLi
 				}
 			});
 		}
+	}
+	public void update()
+	{
+		this.update(false);
 	}
 }
