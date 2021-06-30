@@ -15,6 +15,7 @@ import androidx.recyclerview.selection.SelectionTracker;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 
 import java.util.ArrayDeque;
@@ -68,16 +69,6 @@ public abstract class TiRecyclerViewAdapter<VH extends TiRecyclerViewHolder<V>, 
 	public long getItemId(int position)
 	{
 		return this.models.get(position).hashCode();
-	}
-
-	/**
-	 * Get list of models.
-	 *
-	 * @return List of models.
-	 */
-	public List<V> getModels()
-	{
-		return this.models;
 	}
 
 	/**
@@ -141,7 +132,7 @@ public abstract class TiRecyclerViewAdapter<VH extends TiRecyclerViewHolder<V>, 
 			notifyDataSetChanged();
 
 			// Update models.
-			this.models = models;
+			this.models = newModels;
 
 			return;
 		}
@@ -255,11 +246,17 @@ public abstract class TiRecyclerViewAdapter<VH extends TiRecyclerViewHolder<V>, 
 		{
 			final V oldView = oldViews.get(oldItemPosition);
 			final V newView = newViews.get(newItemPosition);
+			final KrollDict oldProperties = oldView.getProperties();
+			final KrollDict newProperties = newView.getProperties();
+
+			if (oldProperties == null || newProperties == null) {
+				return false;
+			}
 
 			// Calculate content specific hashes.
 			// Compare properties and children.
-			final int oldHash = oldView.getProperties().hashCode() * Arrays.hashCode(oldView.getChildren());
-			final int newHash = newView.getProperties().hashCode() * Arrays.hashCode(newView.getChildren());
+			final int oldHash = oldProperties.hashCode() + Arrays.hashCode(oldView.getChildren());
+			final int newHash = newProperties.hashCode() + Arrays.hashCode(newView.getChildren());
 
 			return oldHash == newHash;
 		}
