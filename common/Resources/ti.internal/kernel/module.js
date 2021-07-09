@@ -63,7 +63,7 @@ function bootstrap (global, kroll) {
 			}
 
 			// Stick it in the cache
-			Module.cache[this.filename] = this;
+			// Module.cache[this.filename] = this;
 
 			this._runScript(source, this.filename);
 
@@ -432,7 +432,7 @@ function bootstrap (global, kroll) {
 			const source = assets.readAsset(OS_ANDROID ? `Resources${filename}` : filename);
 
 			// Stick it in the cache
-			Module.cache[filename] = module;
+			// Module.cache[filename] = module;
 
 			module.exports = JSON.parse(source);
 			module.loaded = true;
@@ -512,17 +512,13 @@ function bootstrap (global, kroll) {
 		 * @return {*}          [description]
 		 */
 		_runScript (source, filename) {
-			const self = this;
-
-			function require(path) {
-				return self.require(path);
-			}
+			const require = this.require.bind(this);
 			require.main = Module.main;
 
 			// This "first time" run is really only for app.js, AFAICT, and needs
 			// an activity. If app was restarted for Service only, we don't want
 			// to go this route. So added currentActivity check. (bill)
-			if (self.id === '.' && !this.isService) {
+			if (this.id === '.' && !this.isService) {
 				global.require = require;
 
 				// check if we have an inspector binding...
@@ -555,11 +551,11 @@ function bootstrap (global, kroll) {
 			} else if (OS_ANDROID) {
 				const result = evaluate.runAsModule(source, filename, {
 					exports: this.exports,
+					require,
 					module: this,
 					__filename: filename,
 					__dirname: path.dirname(filename)
 				});
-				// this.exports = result;
 				return result;
 			}
 		}

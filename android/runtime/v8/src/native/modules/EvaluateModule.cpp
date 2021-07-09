@@ -174,8 +174,7 @@ namespace titanium {
 	void EvaluateModule::RunAsModule(const FunctionCallbackInfo<Value>& args)
 	{
 		Isolate *isolate = args.GetIsolate();
-		Local<Context> context = isolate->GetCurrentContext();
-		// EscapableHandleScope scope(isolate);
+		Local<Context> context = isolate->GetEnteredContext();
 
 		// Set result as undefined by default.
 		args.GetReturnValue().Set(Undefined(isolate));
@@ -220,15 +219,14 @@ namespace titanium {
 		}
 		Local<Module> module = maybeModule.ToLocalChecked();
 
-		// Obtain runtime global context.
-		Local<Context> runtimeContext = V8Runtime::GlobalContext();
-
 		// Create new context for module to run in.
-		Local<Context> moduleContext = ModuleContext::New(runtimeContext, contextObj);
-		Context::Scope contextScope(moduleContext);
+		Local<Context> moduleContext = ModuleContext::New(V8Runtime::GlobalContext(), contextObj);
+		Context::Scope moduleScope(moduleContext);
 
 		// Obtain module global context.
 		Local<Object> moduleGlobal = moduleContext->Global();
+
+		ModuleContext::CopyPrototypes(context, moduleContext);
 
 		// Instantiate module and process imports via `ModuleCallback`.
 		module->InstantiateModule(moduleContext, ModuleCallback);
@@ -243,8 +241,6 @@ namespace titanium {
 			isolate->TerminateExecution();
 			return;
 		}
-
-		LOGE(TAG, "Evaluating '%s'...", *String::Utf8Value(isolate, filename));
 
 		// Execute module, obtaining a result.
 		MaybeLocal<Value> maybeResult = module->Evaluate(moduleContext);
@@ -279,13 +275,12 @@ namespace titanium {
 
 			// Obtain module exports as result.
 			Local<Object> moduleNamespace = module->GetModuleNamespace().As<Object>();
-			if (moduleNamespace->Has(context, DEFAULT_STRING).FromMaybe(false)) {
-				result = moduleNamespace->Get(context, DEFAULT_STRING).FromMaybe(moduleNamespace.As<Value>());
+			if (moduleNamespace->HasRealNamedProperty(context, DEFAULT_STRING).FromMaybe(false)) {
+				result = moduleNamespace->GetRealNamedProperty(context, DEFAULT_STRING).FromMaybe(moduleNamespace.As<Value>());
 			} else {
 				result = moduleNamespace;
 			}
 
-			// Include exports into 'module.exports'.
 			if (moduleGlobal->HasRealNamedProperty(context, MODULE_STRING).FromMaybe(false)) {
 				Local<Value> moduleValue = moduleGlobal->GetRealNamedProperty(context, MODULE_STRING).ToLocalChecked();
 
@@ -295,17 +290,20 @@ namespace titanium {
 					if (moduleObj->HasRealNamedProperty(context, EXPORTS_STRING).FromMaybe(false)) {
 						Local<Value> exportsValue = moduleObj->GetRealNamedProperty(context, EXPORTS_STRING).ToLocalChecked();
 
-						if (!exportsValue.IsEmpty() && exportsValue->IsObject()) {
-							Local<Object> exportsObj = exportsValue.As<Object>();
+						if (exportsValue->IsObject()) {
 
-							if (exportsObj->GetPropertyNames()->Length() == 0) {
-								moduleObj->Set(context, EXPORTS_STRING, result);
-							}
+							// Include exports into 'module.exports'.
+							V8Util::objectExtend(exportsValue.As<Object>(), result.As<Object>());
 						}
+
+						// Set result as 'module.exports'.
+						result = exportsValue;
 					}
 				}
 			}
 		}
+
+		ModuleContext::CopyPrototypes(moduleContext, context);
 
 		// Return result.
 		args.GetReturnValue().Set(result);
